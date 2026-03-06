@@ -1,7 +1,6 @@
 package com.thd.ordermanagement.service;
 
 import com.thd.ordermanagement.dto.CreateOrderRequest;
-import com.thd.ordermanagement.dto.OrderItemRequest;
 import com.thd.ordermanagement.dto.OrderItemResponse;
 import com.thd.ordermanagement.dto.OrderResponse;
 import com.thd.ordermanagement.exception.InvalidOrderStateException;

@@ -1,11 +1,6 @@
 package com.thd.ordermanagement.controller;
 
-import tools.jackson.databind.ObjectMapper;
-import com.thd.ordermanagement.dto.CreateOrderRequest;
-import com.thd.ordermanagement.dto.OrderItemRequest;
-import com.thd.ordermanagement.dto.OrderItemResponse;
-import com.thd.ordermanagement.dto.OrderResponse;
-import com.thd.ordermanagement.dto.UpdateOrderStatusRequest;
+import com.thd.ordermanagement.dto.*;
 import com.thd.ordermanagement.exception.InvalidOrderStateException;
 import com.thd.ordermanagement.exception.OrderNotFoundException;
 import com.thd.ordermanagement.model.OrderStatus;
@@ -14,21 +9,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OrderController.class)
 public class OrderControllerTest {
