@@ -1,0 +1,51 @@
+"""
+Configuration settings for the agentic workflow orchestrator.
+Loads settings from environment variables and provides defaults.
+"""
+
+import os
+from pathlib import Path
+
+# GitHub configuration
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+GITHUB_REPO = "debashishmitra/poc-agentic-sdlc"
+GITHUB_API_BASE = "https://api.github.com"
+
+# Anthropic API configuration
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+MODEL = "claude-sonnet-4-20250514"
+
+# Repository local path
+REPO_LOCAL_PATH = os.getenv("REPO_LOCAL_PATH", str(Path(__file__).parent.parent.parent))
+
+# Validate required environment variables
+def validate_config():
+    """Validate that required environment variables are set."""
+    errors = []
+
+    if not GITHUB_TOKEN:
+        errors.append("GITHUB_TOKEN environment variable is not set")
+
+    if not ANTHROPIC_API_KEY:
+        errors.append("ANTHROPIC_API_KEY environment variable is not set")
+
+    if errors:
+        raise ValueError("Configuration errors:\n" + "\n".join(f"  - {e}" for e in errors))
+
+
+# API request timeout
+API_TIMEOUT = 30
+
+# Maximum tokens for Claude API responses
+MAX_TOKENS = 4096
+
+# Claude models configuration
+CLAUDE_MODELS = {
+    "sonnet": "claude-sonnet-4-20250514",
+    "opus": "claude-opus-4-20250805",
+}
+
+# Default model for different tasks
+DESIGN_MODEL = MODEL
+IMPLEMENTATION_MODEL = MODEL
+REVIEW_MODEL = MODEL
