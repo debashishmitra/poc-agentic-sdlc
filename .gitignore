@@ -1,0 +1,102 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+pom.xml.bak
+release.properties
+dependency-reduced-pom.xml
+.flattened-pom.xml
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+*.iws
+*.ipr
+*.class
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Eclipse
+.apt_generated
+.cache-main
+.sts4-cache
+
+# IntelliJ
+out/
+.idea_modules/
+*.jks
+*.jmh_pid
+
+# VS Code
+.history/
+.ionide/
+
+# Gradle
+.gradle/
+build/
+
+# Build output
+bin/
+!**/src/**/bin/
+!**/src/**/build/
+
+# JDT-specific (Eclipse Java Development Tools)
+.jdtconfig
+
+# Local environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+tmp/
+temp/
+
+# OS
+Thumbs.db
+
+# Package files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+*.cover
+
+# IDE specific files
+.swiftpm/
+
+# Backup files
+*.backup
+*.bak

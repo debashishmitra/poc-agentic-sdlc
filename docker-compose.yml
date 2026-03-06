@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: thd-postgres
+    environment:
+      POSTGRES_DB: order_management_db
+      POSTGRES_USER: order_user
+      POSTGRES_PASSWORD: order_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U order_user -d order_management_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - order-network
+
+  order-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: thd-order-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/order_management_db
+      SPRING_DATASOURCE_USERNAME: order_user
+      SPRING_DATASOURCE_PASSWORD: order_password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_PROFILES_ACTIVE: postgres
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - order-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  order-network:
+    driver: bridge
