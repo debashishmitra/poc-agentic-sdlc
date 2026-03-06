@@ -2,7 +2,7 @@ package com.thd.ordermanagement.dto;
 
 import com.thd.ordermanagement.model.OrderStatus;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 public class UpdateOrderStatusRequest {
 

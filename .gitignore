@@ -100,3 +100,4 @@ htmlcov/
 # Backup files
 *.backup
 *.bak
+__pycache__/

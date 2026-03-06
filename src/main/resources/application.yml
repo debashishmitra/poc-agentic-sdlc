@@ -59,5 +59,3 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: thd_user
     password: thd_secret
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQL10Dialect

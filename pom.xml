@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.18</version>
+        <version>4.0.3</version>
         <relativePath/>
     </parent>
 
@@ -18,8 +18,8 @@
     <description>Order Management Microservice for The Home Depot - POC for AI Agentic SDLC Workflows</description>
 
     <properties>
-        <java.version>11</java.version>
-        <springdoc.version>1.7.0</springdoc.version>
+        <java.version>25</java.version>
+        <springdoc.version>2.8.5</springdoc.version>
     </properties>
 
     <dependencies>
@@ -53,10 +53,10 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- API Documentation -->
+        <!-- API Documentation (springdoc v2 for Spring Boot 4.x) -->
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>${springdoc.version}</version>
         </dependency>
 
@@ -92,7 +92,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.11</version>
+                <version>0.8.12</version>
                 <executions>
                     <execution>
                         <goals>
