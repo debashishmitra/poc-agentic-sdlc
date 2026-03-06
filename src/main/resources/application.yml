@@ -55,7 +55,7 @@ spring:
     activate:
       on-profile: postgres
   datasource:
-    url: jdbc:postgresql://localhost:5432/orderdb
+    url: jdbc:postgresql://localhost:5432/order_management_db
     driver-class-name: org.postgresql.Driver
-    username: thd_user
-    password: thd_secret
+    username: order_user
+    password: order_password

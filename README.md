@@ -8,7 +8,7 @@ The THD Order Management Service is a Spring Boot-based REST API that provides c
 
 ## Prerequisites
 
-- Java 11 or higher
+- Java 25 or higher
 - Maven 3.8.7 or higher
 - Docker and Docker Compose (for PostgreSQL deployment)
 - PostgreSQL 15 (if running without Docker)
@@ -108,13 +108,11 @@ Coverage report will be available at: `target/site/jacoco/index.html`
 
 ## Order Status Transitions
 
-Valid status transitions:
-- `PENDING` → `CONFIRMED`, `PROCESSING`, `CANCELLED`
-- `CONFIRMED` → `PROCESSING`, `SHIPPED`, `CANCELLED`
-- `PROCESSING` → `SHIPPED`, `CANCELLED`
-- `SHIPPED` → `DELIVERED`
-- `DELIVERED` → (no transitions allowed)
-- `CANCELLED` → (no transitions allowed)
+Status transition rules:
+- `CANCELLED` → no further transitions allowed
+- `DELIVERED` → no further transitions allowed
+- `PENDING` → cannot transition directly to `SHIPPED` or `DELIVERED`
+- All other transitions are allowed
 
 ## Sample Request
 
@@ -180,11 +178,12 @@ Main configuration is in `src/main/resources/application.yml`:
 ```yaml
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb
+    url: jdbc:h2:mem:orderdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
+    username: sa
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
 ```
 
 ### Database Profiles
