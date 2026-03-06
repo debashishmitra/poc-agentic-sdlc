@@ -1,6 +1,6 @@
 package com.thd.ordermanagement.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.thd.ordermanagement.dto.CreateOrderRequest;
 import com.thd.ordermanagement.dto.OrderItemRequest;
 import com.thd.ordermanagement.dto.OrderItemResponse;
