@@ -33,11 +33,11 @@ def validate_config():
         raise ValueError("Configuration errors:\n" + "\n".join(f"  - {e}" for e in errors))
 
 
-# API request timeout
-API_TIMEOUT = 30
+# API request timeout (seconds) - design/implementation need longer timeouts
+API_TIMEOUT = 120
 
 # Maximum tokens for Claude API responses
-MAX_TOKENS = 4096
+MAX_TOKENS = 8192
 
 # Claude models configuration
 CLAUDE_MODELS = {
