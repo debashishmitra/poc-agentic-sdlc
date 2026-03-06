@@ -10,10 +10,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -59,6 +61,24 @@ public class OrderController {
     @ApiResponse(responseCode = "200", description = "Orders retrieved successfully")
     public ResponseEntity<List<OrderResponse>> getOrdersByStatus(@PathVariable OrderStatus status) {
         List<OrderResponse> orders = orderService.getOrdersByStatus(status);
+        return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
+    @GetMapping("/customer/{email}")
+    @Operation(summary = "Get orders by customer email", description = "Retrieves all orders for a specific customer email")
+    @ApiResponse(responseCode = "200", description = "Orders retrieved successfully")
+    public ResponseEntity<List<OrderResponse>> getOrdersByCustomerEmail(@PathVariable String email) {
+        List<OrderResponse> orders = orderService.getOrdersByCustomerEmail(email);
+        return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
+    @GetMapping("/date-range")
+    @Operation(summary = "Get orders by date range", description = "Retrieves all orders created within the specified date range")
+    @ApiResponse(responseCode = "200", description = "Orders retrieved successfully")
+    public ResponseEntity<List<OrderResponse>> getOrdersByDateRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<OrderResponse> orders = orderService.getOrdersByDateRange(startDate, endDate);
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 

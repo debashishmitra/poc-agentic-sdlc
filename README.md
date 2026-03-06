@@ -94,8 +94,25 @@ Coverage report will be available at: `target/site/jacoco/index.html`
 | GET | `/api/v1/orders` | Get all orders | 200 OK |
 | GET | `/api/v1/orders/{id}` | Get order by ID | 200 OK / 404 Not Found |
 | GET | `/api/v1/orders/status/{status}` | Get orders by status | 200 OK |
+| GET | `/api/v1/orders/customer/{email}` | Get orders by customer email | 200 OK |
+| GET | `/api/v1/orders/date-range?startDate=...&endDate=...` | Get orders by date range | 200 OK |
 | PATCH | `/api/v1/orders/{id}/status` | Update order status | 200 OK / 400 / 404 |
 | DELETE | `/api/v1/orders/{id}/cancel` | Cancel an order | 204 No Content / 400 / 404 |
+
+### Query Parameters — Date Range
+
+The `GET /api/v1/orders/date-range` endpoint accepts the following query parameters:
+
+| Parameter | Required | Format | Example |
+|-----------|----------|--------|---------|
+| `startDate` | Yes | ISO 8601 date-time | `2026-01-01T00:00:00` |
+| `endDate` | Yes | ISO 8601 date-time | `2026-12-31T23:59:59` |
+
+**Example request:**
+
+```bash
+curl "http://localhost:8080/api/v1/orders/date-range?startDate=2026-01-01T00:00:00&endDate=2026-12-31T23:59:59"
+```
 
 ## Valid Order Statuses
 
