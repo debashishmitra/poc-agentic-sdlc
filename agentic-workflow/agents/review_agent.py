@@ -133,12 +133,12 @@ Format with clear sections and provide specific examples."""
         Returns:
             Parsed review data
         """
-        # Look for approval status
+        # Look for approval status (GitHub API expects: APPROVE, REQUEST_CHANGES, COMMENT)
         approval_status = "COMMENT"
-        if "APPROVED" in review_text.upper():
-            approval_status = "APPROVED"
-        elif "CHANGES_REQUESTED" in review_text.upper() or "CHANGES REQUESTED" in review_text.upper():
-            approval_status = "CHANGES_REQUESTED"
+        if "APPROVED" in review_text.upper() or "APPROVE" in review_text.upper():
+            approval_status = "APPROVE"
+        elif "CHANGES_REQUESTED" in review_text.upper() or "CHANGES REQUESTED" in review_text.upper() or "REQUEST_CHANGES" in review_text.upper():
+            approval_status = "REQUEST_CHANGES"
 
         # Extract sections
         return {

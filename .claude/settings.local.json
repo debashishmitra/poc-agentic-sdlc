@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Read(//mnt/c/Users/forde/git/**)",
-      "Bash(mvn compile)"
+      "Bash(mvn compile)",
+      "Bash(pip install:*)",
+      "Bash(where python:*)",
+      "Bash(py:*)",
+      "Bash(python:*)",
+      "Bash(source:*)",
+      "Bash(rm:*)"
     ]
   }
 }

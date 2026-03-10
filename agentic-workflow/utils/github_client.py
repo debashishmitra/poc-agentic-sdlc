@@ -77,27 +77,36 @@ class GitHubClient:
 
     def create_branch(self, branch_name: str, base: str = "main") -> Dict[str, Any]:
         """
-        Create a new branch.
+        Create a new branch. If the branch already exists, update it to point
+        to the latest commit on the base branch.
 
         Args:
             branch_name: Name of the new branch
             base: Base branch to create from (default: main)
 
         Returns:
-            Branch creation response
+            Branch creation/update response
         """
         # First, get the SHA of the base branch
         endpoint = f"/repos/{self.repo}/git/refs/heads/{base}"
         base_ref = self._make_request("GET", endpoint)
         base_sha = base_ref["object"]["sha"]
 
-        # Create the new branch
+        # Try to create the new branch
         endpoint = f"/repos/{self.repo}/git/refs"
         data = {
             "ref": f"refs/heads/{branch_name}",
             "sha": base_sha,
         }
-        return self._make_request("POST", endpoint, data)
+        try:
+            return self._make_request("POST", endpoint, data)
+        except Exception as e:
+            if "422" in str(e):
+                # Branch already exists — update it to the base SHA
+                update_endpoint = f"/repos/{self.repo}/git/refs/heads/{branch_name}"
+                update_data = {"sha": base_sha, "force": True}
+                return self._make_request("PATCH", update_endpoint, update_data)
+            raise
 
     def get_file_content(
         self, path: str, branch: str = "main"
