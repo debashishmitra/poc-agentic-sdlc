@@ -26,6 +26,7 @@ dependency-reduced-pom.xml
 *.launch
 .settings/
 *.sublime-workspace
+.zed/
 
 # Eclipse
 .apt_generated
