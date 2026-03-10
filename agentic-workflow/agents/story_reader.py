@@ -5,8 +5,9 @@ Extracts story data including title, acceptance criteria, technical notes, etc.
 
 import re
 from typing import Dict, Any, List
-from utils.github_client import GitHubClient
+
 from utils.formatting import print_agent_header, print_step, print_success, print_error
+from utils.github_client import GitHubClient
 
 
 class StoryReaderAgent:
