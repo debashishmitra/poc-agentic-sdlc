@@ -1,7 +1,6 @@
 package com.thd.ordermanagement.controller;
 
 import com.thd.ordermanagement.dto.CustomerOrderSummaryDto;
-import com.thd.ordermanagement.dto.OrderResponse;
 import com.thd.ordermanagement.model.Order;
 import com.thd.ordermanagement.service.CustomerOrderService;
 import io.swagger.v3.oas.annotations.Operation;

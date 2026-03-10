@@ -2,7 +2,6 @@
 Utility modules for the agentic SDLC workflow.
 """
 
-from utils.github_client import GitHubClient
 from utils.claude_client import ClaudeClient
 from utils.formatting import (
     print_agent_header,
@@ -14,6 +13,7 @@ from utils.formatting import (
     print_section,
     print_summary,
 )
+from utils.github_client import GitHubClient
 
 __all__ = [
     "GitHubClient",

@@ -3,11 +3,11 @@ Review Agent - performs automated code review using Claude.
 Reviews pull requests and provides feedback on code quality, patterns, and best practices.
 """
 
-import re
-from typing import Dict, Any, List
-from utils.github_client import GitHubClient
+from typing import Dict, Any
+
 from utils.claude_client import ClaudeClient
 from utils.formatting import print_agent_header, print_step, print_success, print_error
+from utils.github_client import GitHubClient
 
 
 class ReviewAgent:

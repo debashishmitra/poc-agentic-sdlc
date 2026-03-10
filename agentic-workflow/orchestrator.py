@@ -5,16 +5,13 @@ Coordinates all agents to run the complete pipeline from issue to deployment.
 
 import time
 from typing import Dict, Any, Optional
-from config.settings import validate_config
-from agents.story_reader import StoryReaderAgent
+
 from agents.design_agent import DesignAgent
 from agents.implementation_agent import ImplementationAgent
 from agents.review_agent import ReviewAgent
+from agents.story_reader import StoryReaderAgent
 from utils.formatting import (
     print_banner,
-    print_agent_header,
-    print_step,
-    print_success,
     print_error,
     print_summary,
     print_section,

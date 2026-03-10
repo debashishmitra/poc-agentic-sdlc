@@ -3,12 +3,12 @@ Design Agent - generates technical design documents using Claude.
 Creates comprehensive design docs including API specs, data models, and architecture.
 """
 
-import re
+from datetime import datetime
 from typing import Dict, Any
-from utils.github_client import GitHubClient
+
 from utils.claude_client import ClaudeClient
 from utils.formatting import print_agent_header, print_step, print_success, print_error
-from datetime import datetime
+from utils.github_client import GitHubClient
 
 
 class DesignAgent:

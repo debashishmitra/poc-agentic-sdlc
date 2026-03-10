@@ -3,8 +3,8 @@ Console formatting utilities for agent output.
 Provides colorized and formatted output for status messages.
 """
 
-import sys
 import io
+import sys
 
 # Force UTF-8 output on Windows to support Unicode characters
 if sys.stdout.encoding != "utf-8":

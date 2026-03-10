@@ -3,10 +3,9 @@ GitHub API client for interacting with the repository.
 Handles issue reading, branch creation, file operations, and PR management.
 """
 
-import requests
-import json
 from typing import Dict, Any, Optional
-from datetime import datetime
+
+import requests
 from config.settings import GITHUB_TOKEN, GITHUB_REPO, GITHUB_API_BASE, API_TIMEOUT
 
 
