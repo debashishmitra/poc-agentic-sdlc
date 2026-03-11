@@ -1,6 +1,7 @@
 package com.thd.ordermanagement.service;
 
 import com.thd.ordermanagement.dto.CreateOrderRequest;
+import com.thd.ordermanagement.dto.OrderCountSummaryResponse;
 import com.thd.ordermanagement.dto.OrderItemResponse;
 import com.thd.ordermanagement.dto.OrderResponse;
 import com.thd.ordermanagement.exception.InvalidOrderStateException;
@@ -15,7 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -139,6 +143,32 @@ public class OrderServiceImpl implements OrderService {
         if (currentStatus == OrderStatus.PENDING && (newStatus == OrderStatus.SHIPPED || newStatus == OrderStatus.DELIVERED)) {
             throw new InvalidOrderStateException("Cannot ship or deliver an order that is still pending");
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderCountSummaryResponse getOrderCountSummary() {
+        List<Object[]> rawCounts = orderRepository.countOrdersGroupedByStatus();
+
+        Map<OrderStatus, Long> queriedCounts = rawCounts.stream()
+                .collect(Collectors.toMap(
+                        row -> (OrderStatus) row[0],
+                        row -> (Long) row[1]
+                ));
+
+        Map<OrderStatus, Long> statusCounts = Arrays.stream(OrderStatus.values())
+                .collect(Collectors.toMap(
+                        status -> status,
+                        status -> queriedCounts.getOrDefault(status, 0L),
+                        (existing, replacement) -> existing,
+                        LinkedHashMap::new
+                ));
+
+        long totalOrders = statusCounts.values().stream()
+                .mapToLong(Long::longValue)
+                .sum();
+
+        return new OrderCountSummaryResponse(statusCounts, totalOrders);
     }
 
     private BigDecimal calculateTotalAmount(List<OrderItem> items) {

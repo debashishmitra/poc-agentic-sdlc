@@ -1,6 +1,7 @@
 package com.thd.ordermanagement.controller;
 
 import com.thd.ordermanagement.dto.CreateOrderRequest;
+import com.thd.ordermanagement.dto.OrderCountSummaryResponse;
 import com.thd.ordermanagement.dto.OrderResponse;
 import com.thd.ordermanagement.dto.UpdateOrderStatusRequest;
 import com.thd.ordermanagement.model.OrderStatus;
@@ -92,6 +93,14 @@ public class OrderController {
             @Valid @RequestBody UpdateOrderStatusRequest request) {
         OrderResponse response = orderService.updateOrderStatus(id, request.getStatus());
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/summary/counts")
+    @Operation(summary = "Get order count summary", description = "Returns the count of orders grouped by each OrderStatus along with a total order count")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved order count summary")
+    public ResponseEntity<OrderCountSummaryResponse> getOrderCountSummary() {
+        OrderCountSummaryResponse summary = orderService.getOrderCountSummary();
+        return ResponseEntity.ok(summary);
     }
 
     @DeleteMapping("/{id}/cancel")

@@ -59,6 +59,17 @@ class GitHubClient:
             )
             response.raise_for_status()
             return response.json() if response.text else {}
+        except requests.exceptions.HTTPError as e:
+            # Include response body for better debugging
+            error_body = ""
+            if e.response is not None:
+                try:
+                    error_body = e.response.json()
+                except Exception:
+                    error_body = e.response.text
+            raise Exception(
+                f"GitHub API request failed: {str(e)} | Response: {error_body}"
+            )
         except requests.exceptions.RequestException as e:
             raise Exception(f"GitHub API request failed: {str(e)}")
 
