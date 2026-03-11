@@ -31,4 +31,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             String email, LocalDateTime endDate, Pageable pageable);
 
     boolean existsByCustomerEmail(String email);
+
+    long countByOrderStatus(OrderStatus status);
 }
+

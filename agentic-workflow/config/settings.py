@@ -5,6 +5,10 @@ Loads settings from environment variables and provides defaults.
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load .env file from the agentic-workflow directory
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 # GitHub configuration
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
@@ -13,7 +17,7 @@ GITHUB_API_BASE = "https://api.github.com"
 
 # Anthropic API configuration
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-MODEL = "claude-opus-4-20250805"
+MODEL = "claude-opus-4-6"
 
 # Repository local path
 REPO_LOCAL_PATH = os.getenv("REPO_LOCAL_PATH", str(Path(__file__).parent.parent.parent))
@@ -41,8 +45,8 @@ MAX_TOKENS = 8192
 
 # Claude models configuration
 CLAUDE_MODELS = {
-    "sonnet": "claude-sonnet-4-20250514",
-    "opus": "claude-opus-4-20250805",
+    "sonnet": "claude-sonnet-4-6",
+    "opus": "claude-opus-4-6",
 }
 
 # Default model for different tasks

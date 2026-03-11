@@ -1,27 +1,17 @@
 package com.thd.ordermanagement.dto;
 
-import com.thd.ordermanagement.model.OrderStatus;
-
 import java.util.Map;
 
 public class OrderCountSummaryResponse {
 
-    private Map<OrderStatus, Long> statusCounts;
     private long totalOrders;
+    private Map<String, Long> statusCounts;
 
     public OrderCountSummaryResponse() {
     }
 
-    public OrderCountSummaryResponse(Map<OrderStatus, Long> statusCounts, long totalOrders) {
-        this.statusCounts = statusCounts;
+    public OrderCountSummaryResponse(long totalOrders, Map<String, Long> statusCounts) {
         this.totalOrders = totalOrders;
-    }
-
-    public Map<OrderStatus, Long> getStatusCounts() {
-        return statusCounts;
-    }
-
-    public void setStatusCounts(Map<OrderStatus, Long> statusCounts) {
         this.statusCounts = statusCounts;
     }
 
@@ -31,5 +21,13 @@ public class OrderCountSummaryResponse {
 
     public void setTotalOrders(long totalOrders) {
         this.totalOrders = totalOrders;
+    }
+
+    public Map<String, Long> getStatusCounts() {
+        return statusCounts;
+    }
+
+    public void setStatusCounts(Map<String, Long> statusCounts) {
+        this.statusCounts = statusCounts;
     }
 }

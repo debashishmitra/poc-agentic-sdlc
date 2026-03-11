@@ -88,6 +88,8 @@ Coverage report will be available at: `target/site/jacoco/index.html`
 
 ## API Endpoints
 
+### Orders
+
 | Method | Endpoint | Description | Response |
 |--------|----------|-------------|----------|
 | POST | `/api/v1/orders` | Create a new order | 201 Created |
@@ -97,7 +99,22 @@ Coverage report will be available at: `target/site/jacoco/index.html`
 | GET | `/api/v1/orders/customer/{email}` | Get orders by customer email | 200 OK |
 | GET | `/api/v1/orders/date-range?startDate=...&endDate=...` | Get orders by date range | 200 OK |
 | PATCH | `/api/v1/orders/{id}/status` | Update order status | 200 OK / 400 / 404 |
+| GET | `/api/v1/orders/summary/counts` | Get order count summary by status | 200 OK |
 | DELETE | `/api/v1/orders/{id}/cancel` | Cancel an order | 204 No Content / 400 / 404 |
+
+### Customers
+
+| Method | Endpoint | Description | Response |
+|--------|----------|-------------|----------|
+| GET | `/api/v1/customers/{email}/orders` | Get paginated orders for a customer | 200 OK / 404 Not Found |
+| GET | `/api/v1/customers/{email}/summary` | Get aggregated order statistics for a customer | 200 OK / 404 Not Found |
+| GET | `/api/v1/customers/{email}/exists` | Check if a customer has any orders | 200 OK |
+
+### Health
+
+| Method | Endpoint | Description | Response |
+|--------|----------|-------------|----------|
+| GET | `/api/health` | Service health check (verifies DB connectivity) | 200 OK |
 
 ### Query Parameters — Date Range
 
@@ -113,6 +130,19 @@ The `GET /api/v1/orders/date-range` endpoint accepts the following query paramet
 ```bash
 curl "http://localhost:8080/api/v1/orders/date-range?startDate=2026-01-01T00:00:00&endDate=2026-12-31T23:59:59"
 ```
+
+### Query Parameters — Customer Orders
+
+The `GET /api/v1/customers/{email}/orders` endpoint supports pagination and date filtering:
+
+| Parameter | Required | Default | Description |
+|-----------|----------|---------|-------------|
+| `page` | No | `0` | Page number (zero-based) |
+| `size` | No | `10` | Page size |
+| `sortBy` | No | `createdAt` | Field to sort by |
+| `sortDir` | No | `desc` | Sort direction (`asc` or `desc`) |
+| `fromDate` | No | — | Filter orders created on or after (ISO 8601) |
+| `toDate` | No | — | Filter orders created on or before (ISO 8601) |
 
 ## Valid Order Statuses
 
@@ -215,7 +245,8 @@ Set via Docker Compose environment variable or VM parameter.
 The API returns appropriate HTTP status codes:
 
 - `400 Bad Request` - Invalid input or invalid order state transition
-- `404 Not Found` - Order not found
+- `404 Not Found` - Order or resource not found
+- `405 Method Not Allowed` - HTTP method not supported for the endpoint
 - `500 Internal Server Error` - Unexpected server error
 
 Error responses include a detailed message:
@@ -231,7 +262,13 @@ Error responses include a detailed message:
 
 ## Monitoring and Health Checks
 
-Health endpoint:
+Application health check (verifies database connectivity):
+
+```
+http://localhost:8080/api/health
+```
+
+Spring Boot Actuator health endpoint:
 
 ```
 http://localhost:8080/actuator/health

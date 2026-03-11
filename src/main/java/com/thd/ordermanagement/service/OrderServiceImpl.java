@@ -10,6 +10,8 @@ import com.thd.ordermanagement.model.Order;
 import com.thd.ordermanagement.model.OrderItem;
 import com.thd.ordermanagement.model.OrderStatus;
 import com.thd.ordermanagement.repository.OrderRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class OrderServiceImpl implements OrderService {
+
+    private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
 
     private final OrderRepository orderRepository;
 
@@ -59,6 +63,7 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(totalAmount);
 
         Order savedOrder = orderRepository.save(order);
+        logger.info("Created order with id: {}", savedOrder.getId());
         return mapToOrderResponse(savedOrder);
     }
 
@@ -67,13 +72,16 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse getOrderById(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + id));
+        logger.debug("Retrieved order with id: {}", id);
         return mapToOrderResponse(order);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponse> getAllOrders() {
-        return orderRepository.findAll().stream()
+        List<Order> orders = orderRepository.findAll();
+        logger.debug("Retrieved {} orders", orders.size());
+        return orders.stream()
                 .map(this::mapToOrderResponse)
                 .collect(Collectors.toList());
     }
@@ -81,7 +89,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrdersByStatus(OrderStatus status) {
-        return orderRepository.findByOrderStatus(status).stream()
+        List<Order> orders = orderRepository.findByOrderStatus(status);
+        logger.debug("Retrieved {} orders with status: {}", orders.size(), status);
+        return orders.stream()
                 .map(this::mapToOrderResponse)
                 .collect(Collectors.toList());
     }
@@ -89,7 +99,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrdersByCustomerEmail(String email) {
-        return orderRepository.findByCustomerEmail(email).stream()
+        List<Order> orders = orderRepository.findByCustomerEmail(email);
+        logger.debug("Retrieved {} orders for customer email: {}", orders.size(), maskEmail(email));
+        return orders.stream()
                 .map(this::mapToOrderResponse)
                 .collect(Collectors.toList());
     }
@@ -97,7 +109,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrdersByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
-        return orderRepository.findByCreatedAtBetween(startDate, endDate).stream()
+        List<Order> orders = orderRepository.findByCreatedAtBetween(startDate, endDate);
+        logger.debug("Retrieved {} orders between {} and {}", orders.size(), startDate, endDate);
+        return orders.stream()
                 .map(this::mapToOrderResponse)
                 .collect(Collectors.toList());
     }
@@ -111,6 +125,7 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderStatus(newStatus);
 
         Order updatedOrder = orderRepository.save(order);
+        logger.info("Updated order {} status to: {}", id, newStatus);
         return mapToOrderResponse(updatedOrder);
     }
 
@@ -129,6 +144,20 @@ public class OrderServiceImpl implements OrderService {
 
         order.setOrderStatus(OrderStatus.CANCELLED);
         orderRepository.save(order);
+        logger.info("Cancelled order with id: {}", id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderCountSummaryResponse getOrderCountSummary() {
+        long totalOrders = orderRepository.count();
+        Map<String, Long> countsByStatus = new LinkedHashMap<>();
+        for (OrderStatus status : OrderStatus.values()) {
+            long count = orderRepository.countByOrderStatus(status);
+            countsByStatus.put(status.name(), count);
+        }
+        logger.debug("Generated order count summary: total={}", totalOrders);
+        return new OrderCountSummaryResponse(totalOrders, countsByStatus);
     }
 
     private void validateStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
@@ -145,36 +174,16 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public OrderCountSummaryResponse getOrderCountSummary() {
-        List<Object[]> rawCounts = orderRepository.countOrdersGroupedByStatus();
-
-        Map<OrderStatus, Long> queriedCounts = rawCounts.stream()
-                .collect(Collectors.toMap(
-                        row -> (OrderStatus) row[0],
-                        row -> (Long) row[1]
-                ));
-
-        Map<OrderStatus, Long> statusCounts = Arrays.stream(OrderStatus.values())
-                .collect(Collectors.toMap(
-                        status -> status,
-                        status -> queriedCounts.getOrDefault(status, 0L),
-                        (existing, replacement) -> existing,
-                        LinkedHashMap::new
-                ));
-
-        long totalOrders = statusCounts.values().stream()
-                .mapToLong(Long::longValue)
-                .sum();
-
-        return new OrderCountSummaryResponse(statusCounts, totalOrders);
-    }
-
     private BigDecimal calculateTotalAmount(List<OrderItem> items) {
         return items.stream()
-                .map(item -> item.getUnitPrice().multiply(new BigDecimal(item.getQuantity())))
+                .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) return "***";
+        int atIndex = email.indexOf('@');
+        return email.substring(0, Math.min(2, atIndex)) + "***" + email.substring(atIndex);
     }
 
     private OrderResponse mapToOrderResponse(Order order) {
