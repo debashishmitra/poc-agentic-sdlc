@@ -7,5 +7,3 @@ services:
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: h2
-      - key: APP_KEEP_ALIVE_URL
-        value: https://poc-agentic-sdlc.onrender.com/api/health
