@@ -348,6 +348,17 @@ Ensure H2 is properly configured in `pom.xml` and test profile uses correct sett
 mvn test -Dspring.profiles.active=test
 ```
 
+## Hosting & Monitoring
+
+The application is hosted on Render (free tier) with UptimeRobot providing keep-alive pings every 5 minutes.
+
+| Service | Dashboard |
+|---------|-----------|
+| **Render** (Hosting) | [App Dashboard](https://dashboard.render.com/web/srv-d6ot40aa214c73aojvjg) |
+| **UptimeRobot** (Monitoring) | [Monitor Dashboard](https://dashboard.uptimerobot.com/monitors/802530643) |
+
+**Live URL**: https://poc-agentic-sdlc.onrender.com
+
 ## Contributing
 
 This is a POC project demonstrating AI Agentic SDLC Workflows. Please follow the existing code structure and conventions when contributing.
