@@ -2,6 +2,12 @@
 
 A Python-based AI-powered orchestrator that automates the entire software development lifecycle using Claude AI. It reads GitHub issues, generates technical design documents, creates implementation code, and performs automated code reviews.
 
+![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat&logo=python&logoColor=white)
+![Claude AI](https://img.shields.io/badge/Claude%20AI-Opus%204.6-D4A574?style=flat&logo=anthropic&logoColor=white)
+![GitHub API](https://img.shields.io/badge/GitHub-REST%20API%20v3-181717?style=flat&logo=github&logoColor=white)
+![Requests](https://img.shields.io/badge/Requests-2.28+-2D8CFF?style=flat&logo=python&logoColor=white)
+![dotenv](https://img.shields.io/badge/python--dotenv-0.19+-ECD53F?style=flat&logo=dotenv&logoColor=black)
+
 ## Architecture
 
 The orchestrator consists of four specialized agents working in a coordinated pipeline:
