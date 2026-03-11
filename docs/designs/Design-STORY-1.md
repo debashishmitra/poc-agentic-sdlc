@@ -1,7 +1,9 @@
 # Technical Design Document
 **Story:** STORY-1
 **Generated:** 2026-03-06T20:57:40.149862
-**Status:** In Review
+**Status:** Implemented
+
+> **Note:** This is the original pre-implementation design. The actual implementation uses a dedicated `CustomerController` at `/api/v1/customers/{email}/...` instead of nesting under `OrderController`, and a separate `CustomerOrderService` instead of adding methods to `OrderService`. The project does not use Lombok (`@Data`/`@Builder`); plain Java classes and records are used instead.
 
 ---
 

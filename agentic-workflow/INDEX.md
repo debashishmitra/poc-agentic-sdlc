@@ -122,7 +122,7 @@ python run.py --issue 1 --phase review --pr 13
 - **Python**: 3.8+
 - **APIs**: GitHub REST v3, Anthropic Claude
 - **HTTP**: requests library
-- **AI Model**: claude-sonnet-4-20250514
+- **AI Model**: claude-opus-4-6
 
 ## Documentation Structure
 
@@ -206,7 +206,7 @@ REPO_LOCAL_PATH           # (Optional) Path to repo
 ### Settings (in config/settings.py)
 ```python
 GITHUB_REPO = "debashishmitra/poc-agentic-sdlc"
-MODEL = "claude-sonnet-4-20250514"
+MODEL = "claude-opus-4-6"
 MAX_TOKENS = 4096
 API_TIMEOUT = 30
 ```
@@ -389,7 +389,7 @@ Utilities
 
 - **Version**: 0.1.0 (Proof of Concept)
 - **Status**: Fully Functional
-- **Created**: March 6, 2025
+- **Created**: March 6, 2026
 - **Language**: Python 3.8+
 - **Dependencies**: requests, anthropic (optional), python-dotenv
 

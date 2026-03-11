@@ -7,7 +7,7 @@ The **Agentic Workflow Orchestrator** is the core component of the poc-agentic-s
 ## Location
 
 ```
-/sessions/zealous-hopeful-bohr/mnt/poc-agentic-sdlc/agentic-workflow/
+agentic-workflow/
 ```
 
 ## Core Concept
@@ -107,7 +107,7 @@ The **orchestrator** coordinates specialized AI agents to perform each step, mai
 - **Code Format**: Pure Python with no external frameworks
 
 ### Claude AI
-- **Model**: claude-sonnet-4-20250514 (can be configured)
+- **Model**: claude-opus-4-6 (can be configured)
 - **API Endpoint**: https://api.anthropic.com/v1/messages
 - **Max Tokens**: 4096 per request (configurable)
 
@@ -295,7 +295,8 @@ REPO_LOCAL_PATH          # Path to local repository (optional)
 ```python
 GITHUB_REPO = "debashishmitra/poc-agentic-sdlc"
 GITHUB_API_BASE = "https://api.anthropic.com/v1"
-MODEL = "claude-sonnet-4-20250514"
+MODEL = "claude-opus-4-6"
+CLAUDE_MODELS = {"sonnet": "claude-sonnet-4-6", "opus": "claude-opus-4-6"}
 API_TIMEOUT = 30
 MAX_TOKENS = 4096
 ```
@@ -403,19 +404,19 @@ Rich, formatted console output with:
 ## Claude API Integration
 
 ### Design Generation
-- **Model**: claude-sonnet-4-20250514
+- **Model**: claude-opus-4-6
 - **Max Tokens**: 6000 (allows longer design docs)
 - **System Prompt**: Architect role, design expert
 - **User Prompt**: Story + code context + design requirements
 
 ### Implementation Generation
-- **Model**: claude-sonnet-4-20250514
+- **Model**: claude-opus-4-6
 - **Max Tokens**: 3000 per component (6 components total)
 - **System Prompt**: Java/Spring Boot expert developer
 - **User Prompt**: Story + design doc + existing patterns
 
 ### Code Review
-- **Model**: claude-sonnet-4-20250514
+- **Model**: claude-opus-4-6
 - **Max Tokens**: 4000 (comprehensive review)
 - **System Prompt**: Code review expert
 - **User Prompt**: PR title + body + full diff
@@ -543,4 +544,4 @@ All while maintaining clear separation of concerns, comprehensive error handling
 
 **Version**: 0.1.0
 **Status**: Proof of Concept
-**Last Updated**: 2025-03-06
+**Last Updated**: 2026-03-12

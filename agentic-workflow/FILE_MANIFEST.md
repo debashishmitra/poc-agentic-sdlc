@@ -27,7 +27,8 @@ agentic-workflow/
 ├── README.md
 ├── QUICKSTART.md
 ├── ARCHITECTURE.md
-└── FILE_MANIFEST.md (this file)
+├── FILE_MANIFEST.md (this file)
+└── INDEX.md
 ```
 
 ## File Descriptions
@@ -386,7 +387,7 @@ The files were created in this logical order:
 ### With Anthropic Claude
 - ClaudeClient uses Claude API endpoint
 - Authenticates with ANTHROPIC_API_KEY env var
-- Uses claude-sonnet-4-20250514 model
+- Uses claude-opus-4-6 model
 
 ### With User
 - run.py provides CLI interface
@@ -426,5 +427,5 @@ To extend the system:
 
 **Total Project**: 18 files, 3850+ lines of code, 1600+ lines of documentation
 
-**Created**: March 6, 2025
+**Created**: March 6, 2026
 **Version**: 0.1.0 POC

@@ -21,7 +21,7 @@ pip install -r requirements.txt
 ```bash
 export GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxx"
 export ANTHROPIC_API_KEY="sk-ant-xxxxxxxxxxxxxxxxxxxx"
-export REPO_LOCAL_PATH="/path/to/pocagentic-sdlc"  # Optional
+export REPO_LOCAL_PATH="/path/to/poc-agentic-sdlc"  # Optional
 ```
 
 ### Option B: Using .env File
@@ -32,10 +32,7 @@ ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxxxxxx
 REPO_LOCAL_PATH=/path/to/poc-agentic-sdlc
 ```
 
-Then load it (Python will read it automatically):
-```bash
-source .env
-```
+The `.env` file is loaded automatically by `python-dotenv` when the orchestrator starts.
 
 ## 4. Run the Orchestrator
 

@@ -1,7 +1,9 @@
 # Technical Design Document
 **Story:** STORY-4
 **Generated:** 2026-03-11T22:25:35.692647
-**Status:** In Review
+**Status:** Implemented
+
+> **Note:** This is the original pre-implementation design. The actual implementation uses `OrderCountSummaryResponse` (not `OrderCountSummaryDto`), `Map<String, Long>` for status counts (not `Map<OrderStatus, Long>`), and the repository method is named `countOrdersGroupedByStatus()`. The service method is `getOrderCountSummary()`.
 
 ---
 

@@ -7,12 +7,15 @@ A Spring Boot 4.0.x REST microservice following a standard layered architecture.
 ```
 ┌───────────────────────────────────────┐
 │              API Layer                │
-│         (OrderController)             │
-│         /api/v1/orders/**             │
+│  OrderController    /api/v1/orders/** │
+│  CustomerController /api/v1/customers/**│
+│  HealthController   /api/health       │
 ├───────────────────────────────────────┤
 │           Service Layer               │
-│    (OrderService / OrderServiceImpl)  │
-│    Business logic, validation, mapping│
+│  OrderService / OrderServiceImpl      │
+│  CustomerOrderService                 │
+│  HealthService                        │
+│  Business logic, validation, mapping  │
 ├───────────────────────────────────────┤
 │         Repository Layer              │
 │         (OrderRepository)             │

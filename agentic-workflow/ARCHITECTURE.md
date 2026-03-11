@@ -37,7 +37,7 @@
      │           ▼             ▼              │
      │      ┌──────────────────────┐         │
      │      │ Claude API           │         │
-     │      │ (claude-sonnet-4)    │         │
+     │      │ (claude-opus-4-6)    │         │
      │      └──────────────────────┘         │
      │                                       │
      │      ┌──────────────────────┐         │
@@ -292,7 +292,7 @@ Design Generation
 │  │    "content-type": "application/json"
 │  │ }
 │  └─ body: {
-│       "model": "claude-sonnet-4-20250514",
+│       "model": "claude-opus-4-6",
 │       "max_tokens": 6000,
 │       "system": "You are a software architect...",
 │       "messages": [{
@@ -338,7 +338,7 @@ run.py
 config/settings.py
 ├─ os (environment variables)
 ├─ pathlib.Path
-└─ [No external dependencies]
+└─ python-dotenv (load_dotenv)
 
 utils/github_client.py
 ├─ requests
