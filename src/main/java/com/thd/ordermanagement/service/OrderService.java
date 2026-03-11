@@ -1,7 +1,6 @@
 package com.thd.ordermanagement.service;
 
 import com.thd.ordermanagement.dto.CreateOrderRequest;
-import com.thd.ordermanagement.dto.HealthResponse;
 import com.thd.ordermanagement.dto.OrderCountSummaryResponse;
 import com.thd.ordermanagement.dto.OrderResponse;
 import com.thd.ordermanagement.model.OrderStatus;
@@ -28,6 +27,4 @@ public interface OrderService {
     void cancelOrder(Long id);
 
     OrderCountSummaryResponse getOrderCountSummary();
-
-    HealthResponse getHealthStatus();
 }
