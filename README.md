@@ -255,8 +255,8 @@ Error responses include a detailed message:
 {
   "timestamp": "2026-03-06T10:30:00",
   "status": 404,
-  "error": "Not Found",
-  "message": "Order not found with id: 999"
+  "message": "Order not found with id: 999",
+  "details": "uri=/api/v1/orders/999"
 }
 ```
 
