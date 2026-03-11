@@ -2,6 +2,19 @@
 
 A POC microservice for managing orders in The Home Depot ecosystem, demonstrating AI Agentic SDLC Workflows.
 
+![Java](https://img.shields.io/badge/Java-25-ED8B00?style=flat&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.3-6DB33F?style=flat&logo=springboot&logoColor=white)
+![Maven](https://img.shields.io/badge/Maven-3.8.7+-C71A36?style=flat&logo=apachemaven&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat&logo=postgresql&logoColor=white)
+![H2](https://img.shields.io/badge/H2-In--Memory-0000BB?style=flat&logo=databricks&logoColor=white)
+![Hibernate](https://img.shields.io/badge/Hibernate-JPA-59666C?style=flat&logo=hibernate&logoColor=white)
+![Swagger](https://img.shields.io/badge/SpringDoc%20OpenAPI-3.0.2-85EA2D?style=flat&logo=swagger&logoColor=black)
+![JUnit](https://img.shields.io/badge/JUnit-5-25A162?style=flat&logo=junit5&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat&logo=docker&logoColor=white)
+![JaCoCo](https://img.shields.io/badge/JaCoCo-0.8.14-C21325?style=flat&logo=codecov&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat&logo=python&logoColor=white)
+![Claude](https://img.shields.io/badge/Claude%20AI-Opus%204.6-D4A574?style=flat&logo=anthropic&logoColor=white)
+
 ## Overview
 
 The THD Order Management Service is a Spring Boot-based REST API that provides comprehensive order management capabilities. It supports creating, retrieving, and managing orders with various statuses and operations.
