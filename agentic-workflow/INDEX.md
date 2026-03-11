@@ -1,5 +1,28 @@
 # Agentic Workflow Orchestrator - Complete Index
 
+## Table of Contents
+
+- [Project Overview](#project-overview)
+- [Quick Links](#quick-links)
+- [Project Statistics](#project-statistics)
+- [Quick Start (5 minutes)](#quick-start-5-minutes)
+- [Core Components](#core-components)
+- [File Organization](#file-organization)
+- [Usage Examples](#usage-examples)
+- [Key Features](#key-features)
+- [Technology Stack](#technology-stack)
+- [Documentation Structure](#documentation-structure)
+- [Key Classes](#key-classes)
+- [Configuration](#configuration)
+- [Data Flow Summary](#data-flow-summary)
+- [Phase Details](#phase-details)
+- [Performance Metrics](#performance-metrics)
+- [Quality Metrics](#quality-metrics)
+- [Known Limitations](#known-limitations)
+- [Future Enhancements](#future-enhancements)
+- [Security Notes](#security-notes)
+- [Support & Resources](#support--resources)
+
 ## Project Overview
 
 A complete, production-ready Python implementation of an AI-powered SDLC orchestrator that automates the entire software development lifecycle using Claude AI and GitHub.

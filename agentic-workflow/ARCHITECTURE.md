@@ -1,5 +1,20 @@
 # Architecture & Design
 
+## Table of Contents
+
+- [System Architecture](#system-architecture)
+- [Component Hierarchy](#component-hierarchy)
+- [Data Flow Architecture](#data-flow-architecture)
+- [State Management](#state-management)
+- [API Integration Details](#api-integration-details)
+- [Module Dependencies](#module-dependencies)
+- [Execution Flow Diagram](#execution-flow-diagram)
+- [Thread Safety & Concurrency](#thread-safety--concurrency)
+- [Error Recovery](#error-recovery)
+- [Performance Optimization](#performance-optimization)
+- [Scalability Considerations](#scalability-considerations)
+- [Security Architecture](#security-architecture)
+
 ## System Architecture
 
 ```

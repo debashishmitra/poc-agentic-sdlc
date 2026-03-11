@@ -15,6 +15,28 @@ A POC microservice for managing orders in The Home Depot ecosystem, demonstratin
 ![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat&logo=python&logoColor=white)
 ![Claude](https://img.shields.io/badge/Claude%20AI-Opus%204.6-D4A574?style=flat&logo=anthropic&logoColor=white)
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [Building the Project](#building-the-project)
+- [Running the Application](#running-the-application)
+- [Running Tests](#running-tests)
+- [API Endpoints](#api-endpoints)
+- [Valid Order Statuses](#valid-order-statuses)
+- [Order Status Transitions](#order-status-transitions)
+- [Sample Request](#sample-request)
+- [API Documentation](#api-documentation)
+- [Project Structure](#project-structure)
+- [Configuration](#configuration)
+- [Exception Handling](#exception-handling)
+- [Monitoring and Health Checks](#monitoring-and-health-checks)
+- [Development](#development)
+- [Troubleshooting](#troubleshooting)
+- [Hosting & Monitoring](#hosting--monitoring)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Overview
 
 The THD Order Management Service is a Spring Boot-based REST API that provides comprehensive order management capabilities. It supports creating, retrieving, and managing orders with various statuses and operations.

@@ -8,6 +8,25 @@ A Python-based AI-powered orchestrator that automates the entire software develo
 ![Requests](https://img.shields.io/badge/Requests-2.28+-2D8CFF?style=flat&logo=python&logoColor=white)
 ![dotenv](https://img.shields.io/badge/python--dotenv-0.19+-ECD53F?style=flat&logo=dotenv&logoColor=black)
 
+## Table of Contents
+
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Usage](#usage)
+- [File Structure](#file-structure)
+- [Configuration](#configuration)
+- [API Clients](#api-clients)
+- [Agents](#agents)
+- [How It Works](#how-it-works)
+- [Console Output](#console-output)
+- [Error Handling](#error-handling)
+- [Extensibility](#extensibility)
+- [Limitations and Future Enhancements](#limitations-and-future-enhancements)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
+
 ## Architecture
 
 The orchestrator consists of four specialized agents working in a coordinated pipeline:

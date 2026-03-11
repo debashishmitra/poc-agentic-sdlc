@@ -1,5 +1,31 @@
 # Agentic Workflow Orchestrator - Project Overview
 
+## Table of Contents
+
+- [Project Summary](#project-summary)
+- [Location](#location)
+- [Core Concept](#core-concept)
+- [Four-Phase Pipeline](#four-phase-pipeline)
+- [Technology Stack](#technology-stack)
+- [Project Structure](#project-structure)
+- [Key Components](#key-components)
+- [Configuration](#configuration)
+- [Usage Examples](#usage-examples)
+- [Data Flow](#data-flow)
+- [Workflow State Management](#workflow-state-management)
+- [Error Handling](#error-handling)
+- [Console Output](#console-output)
+- [Claude API Integration](#claude-api-integration)
+- [Performance Characteristics](#performance-characteristics)
+- [Extensibility Points](#extensibility-points)
+- [Future Enhancements](#future-enhancements)
+- [Security Considerations](#security-considerations)
+- [Testing & Quality](#testing--quality)
+- [Key Files and Their Roles](#key-files-and-their-roles)
+- [Deployment & Distribution](#deployment--distribution)
+- [Repository Integration](#repository-integration)
+- [Summary](#summary)
+
 ## Project Summary
 
 The **Agentic Workflow Orchestrator** is the core component of the poc-agentic-sdlc proof-of-concept. It demonstrates how AI (Claude) can be orchestrated to automate the entire software development lifecycle (SDLC), from reading requirements to shipping code with reviews.

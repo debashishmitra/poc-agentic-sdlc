@@ -2,6 +2,19 @@
 
 Complete list of all files created in the Agentic Workflow Orchestrator project.
 
+## Table of Contents
+
+- [Directory Structure](#directory-structure)
+- [File Descriptions](#file-descriptions)
+- [File Statistics](#file-statistics)
+- [Dependencies](#dependencies)
+- [Module Relationships](#module-relationships)
+- [File Sizes (Approximate)](#file-sizes-approximate)
+- [File Creation Order](#file-creation-order)
+- [Usage of Each File](#usage-of-each-file)
+- [Integration Points](#integration-points)
+- [Extensibility Points](#extensibility-points)
+
 ## Directory Structure
 
 ```

@@ -2,6 +2,23 @@
 
 Get the Agentic Workflow Orchestrator up and running in minutes.
 
+## Table of Contents
+
+- [1. Prerequisites](#1-prerequisites)
+- [2. Install Dependencies](#2-install-dependencies)
+- [3. Set Environment Variables](#3-set-environment-variables)
+- [4. Run the Orchestrator](#4-run-the-orchestrator)
+- [5. Example Workflow](#5-example-workflow)
+- [6. Understanding the Output](#6-understanding-the-output)
+- [7. Troubleshooting](#7-troubleshooting)
+- [8. Next Steps](#8-next-steps)
+- [9. Architecture Overview](#9-architecture-overview)
+- [10. Key Files](#10-key-files)
+- [11. Sample Issue Format](#11-sample-issue-format)
+- [12. Tips & Tricks](#12-tips--tricks)
+- [13. Performance Notes](#13-performance-notes)
+- [14. Support Resources](#14-support-resources)
+
 ## 1. Prerequisites
 
 - Python 3.8 or higher

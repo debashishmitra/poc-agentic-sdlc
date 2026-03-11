@@ -7,9 +7,17 @@
 
 ---
 
-
-
 # Technical Design Document: STORY-002 — Add Order Count Summary Endpoint
+
+## Table of Contents
+
+- [1. Overview and Objectives](#1-overview-and-objectives)
+- [2. API Specification](#2-api-specification)
+- [3. Data Model Changes](#3-data-model-changes)
+- [4. Architecture Diagram](#4-architecture-diagram)
+- [5. Service Layer Design](#5-service-layer-design)
+- [6. Testing Strategy](#6-testing-strategy)
+- [Review Checklist](#review-checklist)
 
 ## 1. Overview and Objectives
 
