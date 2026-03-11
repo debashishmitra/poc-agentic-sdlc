@@ -1,32 +1,34 @@
 # Technical Design Document
 **Story:** STORY-8
 **Generated:** 2026-03-12T00:10:50.409762
-**Status:** In Review
+**Updated:** 2026-03-12 (Post-implementation revision)
+**Status:** Implemented
 
 ---
 
-
-
-# Technical Design Document: STORY-003 — Add Health Check Endpoint for Order Service
+# Technical Design Document: STORY-8 — Add Health Check Endpoint for Order Service
 
 ---
 
 ## 1. Overview and Objectives
 
 ### Overview
-This story adds a lightweight, custom health check endpoint to the existing Order Management Service. The endpoint returns a JSON payload indicating the service's operational status, name, and current timestamp. It is a simple read-only operation with **no database interaction**, following the existing controller → service → DTO layering pattern already established in the codebase.
+This story adds a dedicated health check endpoint to the Order Management Service. The endpoint returns a JSON payload indicating the service's operational status (including database connectivity verification), service name, and current timestamp. Following the Single Responsibility Principle, the health check is implemented in its own `HealthService` and `HealthController`, separate from the order management logic.
 
 ### Objectives
 | Objective | Detail |
 |-----------|--------|
-| **Observability** | Provide a simple, dedicated health probe at `/api/v1/orders/health` for load balancers, orchestrators (Kubernetes liveness/readiness), and monitoring dashboards. |
-| **Consistency** | Follow the project's existing coding patterns (DTO, service interface/impl, annotated controller). |
-| **Documentation** | Expose the endpoint through OpenAPI/Swagger with proper `@Operation` annotations. |
+| **Observability** | Provide a dedicated health probe at `/api/health` for load balancers, orchestrators (Kubernetes liveness/readiness), and monitoring dashboards. |
+| **Database Verification** | Verify actual database connectivity rather than returning a static "UP" response. |
+| **Type Safety** | Use a `HealthStatus` enum (`UP`, `DOWN`, `DEGRADED`) instead of magic strings. |
+| **Single Responsibility** | Separate health check concerns from order management via dedicated `HealthService` and `HealthController`. |
+| **Modern Java** | Use a Java `record` for the response DTO, eliminating boilerplate. |
+| **Documentation** | Expose the endpoint through OpenAPI/Swagger with proper `@Tag`, `@Operation`, and `@ApiResponse` annotations. |
 | **Quality** | Deliver with full unit and controller-layer tests. |
 
 ### Scope
-- **In scope:** New DTO, service method, controller endpoint, Swagger docs, tests.
-- **Out of scope:** Spring Boot Actuator `/actuator/health`, database connectivity checks, dependency health aggregation.
+- **In scope:** `HealthStatus` enum, `HealthResponse` record, `HealthService`, `HealthController`, Swagger docs, unit and controller tests.
+- **Out of scope:** Spring Boot Actuator `/actuator/health`, dependency health aggregation, external service checks.
 
 ---
 
@@ -37,7 +39,7 @@ This story adds a lightweight, custom health check endpoint to the existing Orde
 | Attribute | Value |
 |-----------|-------|
 | **Method** | `GET` |
-| **Path** | `/api/v1/orders/health` |
+| **Path** | `/api/health` |
 | **Authentication** | None (public) |
 | **Content-Type** | `application/json` |
 
@@ -45,6 +47,7 @@ This story adds a lightweight, custom health check endpoint to the existing Orde
 
 #### `HealthResponse` — HTTP 200
 
+**When database is accessible:**
 ```json
 {
   "status": "UP",
@@ -53,30 +56,40 @@ This story adds a lightweight, custom health check endpoint to the existing Orde
 }
 ```
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `status` | `String` | Service operational status | `"UP"` |
-| `timestamp` | `String` (ISO-8601 `LocalDateTime`) | Server time when the response was generated | `"2025-07-15T14:30:00.123456"` |
+**When database is unreachable:**
+```json
+{
+  "status": "DOWN",
+  "timestamp": "2025-07-15T14:30:00.123456",
+  "serviceName": "order-management-service"
+}
+```
+
+| Field | Type | Description | Possible Values |
+|-------|------|-------------|-----------------|
+| `status` | `HealthStatus` (enum) | Service operational status based on DB connectivity | `UP`, `DOWN`, `DEGRADED` |
+| `timestamp` | `String` (ISO-8601 `LocalDateTime`) | Server time when the response was generated | ISO-8601 datetime |
 | `serviceName` | `String` | Canonical name of the service | `"order-management-service"` |
 
 ### OpenAPI Annotations
 
 ```
-@Operation(summary = "Health Check", description = "Returns the current health status of the Order Management Service")
-@ApiResponse(responseCode = "200", description = "Service is running normally")
+@Tag(name = "Health", description = "Service health check endpoint")
+@Operation(summary = "Health check", description = "Returns the health status of the service including database connectivity")
+@ApiResponse(responseCode = "200", description = "Health status retrieved successfully")
 ```
 
 ### cURL Example
 
 ```bash
-curl -s http://localhost:8080/api/v1/orders/health | jq .
+curl -s http://localhost:8080/api/health | jq .
 ```
 
 ---
 
 ## 3. Data Model Changes
 
-**None.** This story introduces no entities, tables, migrations, or repository changes. The response is a stateless, in-memory DTO.
+**None.** This story introduces no entities, tables, or migrations. The `HealthStatus` enum and `HealthResponse` record are purely in-memory types. The `OrderRepository.count()` method (already available via `JpaRepository`) is used for the database connectivity check.
 
 ---
 
@@ -85,257 +98,243 @@ curl -s http://localhost:8080/api/v1/orders/health | jq .
 ```mermaid
 sequenceDiagram
     participant Client
-    participant OrderController
-    participant OrderService
-    participant HealthResponse
+    participant HealthController
+    participant HealthService
+    participant OrderRepository
+    participant Database
 
-    Client->>OrderController: GET /api/v1/orders/health
-    OrderController->>OrderService: getHealthStatus()
-    OrderService->>HealthResponse: new HealthResponse("UP", now(), "order-management-service")
-    HealthResponse-->>OrderService: healthResponse
-    OrderService-->>OrderController: healthResponse
-    OrderController-->>Client: HTTP 200 (JSON body)
+    Client->>HealthController: GET /api/health
+    HealthController->>HealthService: getHealthStatus()
+    HealthService->>OrderRepository: count()
+    OrderRepository->>Database: SELECT COUNT(*) FROM orders
+    alt Database accessible
+        Database-->>OrderRepository: count result
+        OrderRepository-->>HealthService: 5L
+        HealthService-->>HealthController: HealthResponse(UP, now(), "order-management-service")
+    else Database unreachable
+        Database-->>OrderRepository: Exception
+        OrderRepository-->>HealthService: RuntimeException
+        HealthService-->>HealthController: HealthResponse(DOWN, now(), "order-management-service")
+    end
+    HealthController-->>Client: HTTP 200 (JSON body)
 ```
 
 ```mermaid
 classDiagram
-    class OrderController {
-        -OrderService orderService
+    class HealthController {
+        -HealthService healthService
         +getHealthStatus() ResponseEntity~HealthResponse~
     }
 
-    class OrderService {
-        <<interface>>
-        +getHealthStatus() HealthResponse
-    }
-
-    class OrderServiceImpl {
+    class HealthService {
+        -OrderRepository orderRepository
+        -Logger logger
+        -String SERVICE_NAME$
         +getHealthStatus() HealthResponse
     }
 
     class HealthResponse {
-        -String status
-        -LocalDateTime timestamp
-        -String serviceName
-        +HealthResponse()
-        +HealthResponse(String, LocalDateTime, String)
-        +getStatus() String
-        +setStatus(String) void
-        +getTimestamp() LocalDateTime
-        +setTimestamp(LocalDateTime) void
-        +getServiceName() String
-        +setServiceName(String) void
+        <<record>>
+        +HealthStatus status
+        +LocalDateTime timestamp
+        +String serviceName
     }
 
-    OrderController --> OrderService : uses
-    OrderServiceImpl ..|> OrderService : implements
-    OrderServiceImpl ..> HealthResponse : creates
-    OrderController ..> HealthResponse : returns
+    class HealthStatus {
+        <<enumeration>>
+        UP
+        DOWN
+        DEGRADED
+    }
+
+    class OrderRepository {
+        <<interface>>
+        +count() long
+    }
+
+    HealthController --> HealthService : uses
+    HealthService --> OrderRepository : checks connectivity
+    HealthService ..> HealthResponse : creates
+    HealthService ..> HealthStatus : uses
+    HealthResponse --> HealthStatus : contains
+    HealthController ..> HealthResponse : returns
 ```
 
 ### Component-Level View
 
 ```mermaid
 graph LR
-    A[Client / Load Balancer] -->|GET /api/v1/orders/health| B[OrderController]
-    B --> C[OrderServiceImpl]
-    C --> D[HealthResponse DTO]
-    D --> B
+    A[Client / Load Balancer] -->|GET /api/health| B[HealthController]
+    B --> C[HealthService]
+    C --> D[OrderRepository]
+    D --> E[(H2 Database)]
+    C --> F[HealthResponse record]
+    F --> B
     B -->|HTTP 200 JSON| A
 
     style A fill:#e1f5fe
     style B fill:#fff3e0
     style C fill:#e8f5e9
-    style D fill:#fce4ec
+    style D fill:#f3e5f5
+    style E fill:#fce4ec
+    style F fill:#fce4ec
 ```
 
 ---
 
 ## 5. Service Layer Design
 
-### 5.1 DTO — `HealthResponse`
+### 5.1 Enum — `HealthStatus`
+
+**Package:** `com.thd.ordermanagement.model`
+
+```java
+package com.thd.ordermanagement.model;
+
+public enum HealthStatus {
+    UP,
+    DOWN,
+    DEGRADED
+}
+```
+
+**Design Notes:**
+- Type-safe enum replaces magic strings like `"UP"` and `"DOWN"`.
+- `DEGRADED` status is included for future use (e.g., partial dependency failures).
+
+---
+
+### 5.2 DTO — `HealthResponse`
 
 **Package:** `com.thd.ordermanagement.dto`
 
 ```java
 package com.thd.ordermanagement.dto;
 
+import com.thd.ordermanagement.model.HealthStatus;
+
 import java.time.LocalDateTime;
 
-public class HealthResponse {
-
-    private String status;
-    private LocalDateTime timestamp;
-    private String serviceName;
-
-    public HealthResponse() {
-    }
-
-    public HealthResponse(String status, LocalDateTime timestamp, String serviceName) {
-        this.status = status;
-        this.timestamp = timestamp;
-        this.serviceName = serviceName;
-    }
-
-    // --- Getters ---
-
-    public String getStatus() {
-        return status;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public String getServiceName() {
-        return serviceName;
-    }
-
-    // --- Setters ---
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
-    }
+public record HealthResponse(HealthStatus status, LocalDateTime timestamp, String serviceName) {
 }
 ```
 
 **Design Notes:**
-- Follows the same plain-POJO / JavaBean pattern as `OrderResponse` and `OrderCountSummaryResponse` (no Lombok, no records — consistent with existing codebase).
-- `LocalDateTime` is serialized to ISO-8601 by Jackson's `JavaTimeModule` already on the classpath via `spring-boot-starter-web`.
+- Java `record` eliminates boilerplate (no manual getters, constructors, equals/hashCode).
+- `HealthStatus` enum provides type safety — callers cannot pass arbitrary strings.
+- `LocalDateTime` is serialized to ISO-8601 by Jackson's `JavaTimeModule` already on the classpath.
 
 ---
 
-### 5.2 Service Interface — `OrderService` (Addition)
+### 5.3 Service — `HealthService` (New, Dedicated)
 
 **Package:** `com.thd.ordermanagement.service`
-
-Add the following method signature to the existing interface:
-
-```java
-HealthResponse getHealthStatus();
-```
-
-Full interface after change:
 
 ```java
 package com.thd.ordermanagement.service;
 
-import com.thd.ordermanagement.dto.CreateOrderRequest;
 import com.thd.ordermanagement.dto.HealthResponse;
-import com.thd.ordermanagement.dto.OrderCountSummaryResponse;
-import com.thd.ordermanagement.dto.OrderResponse;
-import com.thd.ordermanagement.model.OrderStatus;
+import com.thd.ordermanagement.model.HealthStatus;
+import com.thd.ordermanagement.repository.OrderRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-public interface OrderService {
+@Service
+public class HealthService {
 
-    OrderResponse createOrder(CreateOrderRequest request);
+    private static final Logger logger = LoggerFactory.getLogger(HealthService.class);
+    private static final String SERVICE_NAME = "order-management-service";
 
-    OrderResponse getOrderById(Long id);
+    private final OrderRepository orderRepository;
 
-    List<OrderResponse> getAllOrders();
+    public HealthService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
 
-    List<OrderResponse> getOrdersByStatus(OrderStatus status);
-
-    List<OrderResponse> getOrdersByCustomerEmail(String email);
-
-    List<OrderResponse> getOrdersByDateRange(LocalDateTime startDate, LocalDateTime endDate);
-
-    OrderResponse updateOrderStatus(Long id, OrderStatus status);
-
-    void cancelOrder(Long id);
-
-    OrderCountSummaryResponse getOrderCountSummary();
-
-    HealthResponse getHealthStatus();
-}
-```
-
----
-
-### 5.3 Service Implementation — `OrderServiceImpl` (Addition)
-
-**Package:** `com.thd.ordermanagement.service`
-
-Add the following method to the existing `OrderServiceImpl` class:
-
-```java
-import com.thd.ordermanagement.dto.HealthResponse;
-
-// ...existing code...
-
-private static final String SERVICE_NAME = "order-management-service";
-private static final String STATUS_UP = "UP";
-
-@Override
-@Transactional(readOnly = true)
-public HealthResponse getHealthStatus() {
-    return new HealthResponse(STATUS_UP, LocalDateTime.now(), SERVICE_NAME);
+    public HealthResponse getHealthStatus() {
+        try {
+            orderRepository.count();
+            return new HealthResponse(HealthStatus.UP, LocalDateTime.now(), SERVICE_NAME);
+        } catch (Exception e) {
+            logger.error("Health check failed: {}", e.getMessage(), e);
+            return new HealthResponse(HealthStatus.DOWN, LocalDateTime.now(), SERVICE_NAME);
+        }
+    }
 }
 ```
 
 **Design Rationale:**
 | Decision | Reason |
 |----------|--------|
-| Constants for `SERVICE_NAME` and `STATUS_UP` | Avoids magic strings, makes future extension easier. |
-| `@Transactional(readOnly = true)` | Although no DB access occurs, the class-level `@Transactional` is already present; marking read-only is harmless and explicit. Alternatively, `@Transactional` could be omitted for this method — implementation team's discretion. |
-| `LocalDateTime.now()` | Matches the `LocalDateTime` type required by AC-2. Uses the JVM's default time zone, consistent with `createdAt`/`updatedAt` fields in `Order`. |
+| Dedicated `HealthService` (not in `OrderServiceImpl`) | Single Responsibility Principle — health checking is a cross-cutting concern, not order business logic. |
+| `orderRepository.count()` for DB check | Lightweight query that verifies actual database connectivity without side effects. |
+| Catch-all `Exception` returning `DOWN` | Graceful degradation — never throws to the caller, always returns a valid response. |
+| Error logging with stack trace | Aids debugging when health checks fail in production. |
+| Constructor injection | Consistent with project patterns, enables easy testing with mocks. |
 
 ---
 
-### 5.4 Controller — `OrderController` (Addition)
+### 5.4 Controller — `HealthController` (New, Dedicated)
 
 **Package:** `com.thd.ordermanagement.controller`
 
-Add the following method to the existing `OrderController` class:
-
 ```java
+package com.thd.ordermanagement.controller;
+
 import com.thd.ordermanagement.dto.HealthResponse;
+import com.thd.ordermanagement.service.HealthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-// ...existing code...
+@RestController
+@RequestMapping("/api/health")
+@Tag(name = "Health", description = "Service health check endpoint")
+public class HealthController {
 
-@GetMapping("/health")
-@Operation(
-    summary = "Health Check",
-    description = "Returns the current health status of the Order Management Service"
-)
-@ApiResponse(responseCode = "200", description = "Service is running normally")
-public ResponseEntity<HealthResponse> getHealthStatus() {
-    HealthResponse response = orderService.getHealthStatus();
-    return ResponseEntity.ok(response);
+    private final HealthService healthService;
+
+    public HealthController(HealthService healthService) {
+        this.healthService = healthService;
+    }
+
+    @GetMapping
+    @Operation(summary = "Health check",
+               description = "Returns the health status of the service including database connectivity")
+    @ApiResponse(responseCode = "200", description = "Health status retrieved successfully")
+    public ResponseEntity<HealthResponse> getHealthStatus() {
+        HealthResponse response = healthService.getHealthStatus();
+        return ResponseEntity.ok(response);
+    }
 }
 ```
 
 **Design Notes:**
-- The method is placed in the existing `OrderController` which already has `@RequestMapping("/api/v1/orders")`, so the full path resolves to `GET /api/v1/orders/health`.
-- Returns `ResponseEntity<HealthResponse>` for explicit HTTP status control, consistent with the existing controller methods.
-- The `@Operation` and `@ApiResponse` annotations satisfy AC-4.
+- Dedicated controller at `/api/health` — clean separation from order endpoints at `/api/v1/orders`.
+- `@Tag` annotation groups health endpoints separately in Swagger UI.
+- Returns `ResponseEntity<HealthResponse>` for explicit HTTP status control.
 
 ---
 
 ## 6. Testing Strategy
 
-### 6.1 Unit Tests — `OrderServiceImpl.getHealthStatus()`
+### 6.1 Unit Tests — `HealthService`
 
-**File:** `src/test/java/com/thd/ordermanagement/service/OrderServiceImplHealthTest.java`
+**File:** `src/test/java/com/thd/ordermanagement/service/HealthServiceTest.java`
 
 ```java
 package com.thd.ordermanagement.service;
 
 import com.thd.ordermanagement.dto.HealthResponse;
+import com.thd.ordermanagement.model.HealthStatus;
 import com.thd.ordermanagement.repository.OrderRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -344,306 +343,266 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class OrderServiceImplHealthTest {
+class HealthServiceTest {
 
     @Mock
-    private OrderRepository orderRepository; // required for @InjectMocks
+    private OrderRepository orderRepository;
 
     @InjectMocks
-    private OrderServiceImpl orderService;
+    private HealthService healthService;
 
     @Test
-    @DisplayName("getHealthStatus returns status UP")
-    void getHealthStatus_shouldReturnStatusUp() {
-        HealthResponse response = orderService.getHealthStatus();
+    void should_returnUp_when_databaseIsAccessible() {
+        when(orderRepository.count()).thenReturn(5L);
 
-        assertThat(response.getStatus()).isEqualTo("UP");
-    }
-
-    @Test
-    @DisplayName("getHealthStatus returns correct service name")
-    void getHealthStatus_shouldReturnCorrectServiceName() {
-        HealthResponse response = orderService.getHealthStatus();
-
-        assertThat(response.getServiceName()).isEqualTo("order-management-service");
-    }
-
-    @Test
-    @DisplayName("getHealthStatus returns non-null timestamp close to now")
-    void getHealthStatus_shouldReturnTimestampCloseToNow() {
         LocalDateTime before = LocalDateTime.now();
-        HealthResponse response = orderService.getHealthStatus();
+        HealthResponse response = healthService.getHealthStatus();
         LocalDateTime after = LocalDateTime.now();
 
-        assertThat(response.getTimestamp()).isNotNull();
-        assertThat(response.getTimestamp()).isAfterOrEqualTo(before);
-        assertThat(response.getTimestamp()).isBeforeOrEqualTo(after);
+        assertEquals(HealthStatus.UP, response.status());
+        assertEquals("order-management-service", response.serviceName());
+        assertNotNull(response.timestamp());
+        assertFalse(response.timestamp().isBefore(before));
+        assertFalse(response.timestamp().isAfter(after));
     }
 
     @Test
-    @DisplayName("getHealthStatus returns fully populated DTO")
-    void getHealthStatus_shouldReturnFullyPopulatedDto() {
-        HealthResponse response = orderService.getHealthStatus();
+    void should_returnDown_when_databaseIsUnreachable() {
+        when(orderRepository.count()).thenThrow(new RuntimeException("Connection refused"));
 
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isNotBlank();
-        assertThat(response.getServiceName()).isNotBlank();
-        assertThat(response.getTimestamp()).isNotNull();
+        HealthResponse response = healthService.getHealthStatus();
+
+        assertEquals(HealthStatus.DOWN, response.status());
+        assertEquals("order-management-service", response.serviceName());
+        assertNotNull(response.timestamp());
+    }
+
+    @Test
+    void should_returnCorrectServiceName() {
+        when(orderRepository.count()).thenReturn(0L);
+
+        HealthResponse response = healthService.getHealthStatus();
+
+        assertEquals("order-management-service", response.serviceName());
+    }
+
+    @Test
+    void should_returnConsistentResults_when_calledMultipleTimes() {
+        when(orderRepository.count()).thenReturn(10L);
+
+        HealthResponse response1 = healthService.getHealthStatus();
+        HealthResponse response2 = healthService.getHealthStatus();
+
+        assertEquals(response1.status(), response2.status());
+        assertEquals(response1.serviceName(), response2.serviceName());
+        assertFalse(response2.timestamp().isBefore(response1.timestamp()));
     }
 }
 ```
 
-**Coverage targets (AC-5):**
+**Coverage targets:**
 
 | Test Case | Validates |
 |-----------|-----------|
-| Status is `"UP"` | AC-1, AC-3 |
-| Service name is `"order-management-service"` | AC-2 |
-| Timestamp is close to `now()` | AC-2 |
-| All fields non-null/non-blank | DTO completeness |
+| Returns `UP` when DB is accessible | DB connectivity check, happy path |
+| Returns `DOWN` when DB throws exception | Graceful degradation |
+| Correct service name | Constant correctness |
+| Consistent results across calls | Deterministic behavior |
+| Timestamp within expected range | `LocalDateTime.now()` accuracy |
 
 ---
 
-### 6.2 Controller Tests — `OrderController.getHealthStatus()`
+### 6.2 Controller Tests — `HealthController`
 
-**File:** `src/test/java/com/thd/ordermanagement/controller/OrderControllerHealthTest.java`
+**File:** `src/test/java/com/thd/ordermanagement/controller/HealthControllerTest.java`
 
 ```java
 package com.thd.ordermanagement.controller;
 
 import com.thd.ordermanagement.dto.HealthResponse;
-import com.thd.ordermanagement.service.OrderService;
-import org.junit.jupiter.api.DisplayName;
+import com.thd.ordermanagement.model.HealthStatus;
+import com.thd.ordermanagement.service.HealthService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.bean.MockBean;
-import org.springframework.http.MediaType;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(OrderController.class)
-class OrderControllerHealthTest {
+@WebMvcTest(HealthController.class)
+class HealthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private OrderService orderService;
-
-    private static final String HEALTH_ENDPOINT = "/api/v1/orders/health";
+    @MockitoBean
+    private HealthService healthService;
 
     @Test
-    @DisplayName("GET /api/v1/orders/health returns HTTP 200")
-    void healthEndpoint_shouldReturnOk() throws Exception {
-        LocalDateTime fixedTime = LocalDateTime.of(2025, 7, 15, 10, 30, 0);
-        HealthResponse mockResponse = new HealthResponse("UP", fixedTime, "order-management-service");
+    void healthCheck_ShouldReturnCorrectStructure() throws Exception {
+        HealthResponse response = new HealthResponse(
+                HealthStatus.UP,
+                LocalDateTime.of(2025, 1, 15, 10, 30, 0),
+                "order-management-service"
+        );
+        when(healthService.getHealthStatus()).thenReturn(response);
 
-        when(orderService.getHealthStatus()).thenReturn(mockResponse);
-
-        mockMvc.perform(get(HEALTH_ENDPOINT))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("GET /api/v1/orders/health returns correct JSON structure")
-    void healthEndpoint_shouldReturnCorrectJsonStructure() throws Exception {
-        LocalDateTime fixedTime = LocalDateTime.of(2025, 7, 15, 10, 30, 0);
-        HealthResponse mockResponse = new HealthResponse("UP", fixedTime, "order-management-service");
-
-        when(orderService.getHealthStatus()).thenReturn(mockResponse);
-
-        mockMvc.perform(get(HEALTH_ENDPOINT))
+        mockMvc.perform(get("/api/health"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.status").value("UP"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.serviceName").value("order-management-service"));
+                .andExpect(jsonPath("$.status", is("UP")))
+                .andExpect(jsonPath("$.timestamp", notNullValue()))
+                .andExpect(jsonPath("$.serviceName", is("order-management-service")));
+
+        verify(healthService, times(1)).getHealthStatus();
     }
 
     @Test
-    @DisplayName("GET /api/v1/orders/health returns correct timestamp format")
-    void healthEndpoint_shouldReturnTimestampInIsoFormat() throws Exception {
-        LocalDateTime fixedTime = LocalDateTime.of(2025, 7, 15, 10, 30, 0);
-        HealthResponse mockResponse = new HealthResponse("UP", fixedTime, "order-management-service");
+    void healthCheck_ShouldReturnDown_WhenServiceIsUnhealthy() throws Exception {
+        HealthResponse response = new HealthResponse(
+                HealthStatus.DOWN, LocalDateTime.now(), "order-management-service"
+        );
+        when(healthService.getHealthStatus()).thenReturn(response);
 
-        when(orderService.getHealthStatus()).thenReturn(mockResponse);
-
-        mockMvc.perform(get(HEALTH_ENDPOINT))
+        mockMvc.perform(get("/api/health"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.timestamp").value("2025-07-15T10:30:00"));
+                .andExpect(jsonPath("$.status", is("DOWN")))
+                .andExpect(jsonPath("$.serviceName", is("order-management-service")));
     }
 
     @Test
-    @DisplayName("POST /api/v1/orders/health returns 405 Method Not Allowed")
-    void healthEndpoint_postMethod_shouldReturn405() throws Exception {
-        mockMvc.perform(
-                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                    .post(HEALTH_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("{}"))
+    void healthCheck_PostMethodNotAllowed() throws Exception {
+        mockMvc.perform(post("/api/health"))
                 .andExpect(status().isMethodNotAllowed());
+        verify(healthService, never()).getHealthStatus();
+    }
+
+    @Test
+    void healthCheck_PutMethodNotAllowed() throws Exception {
+        mockMvc.perform(put("/api/health"))
+                .andExpect(status().isMethodNotAllowed());
+    }
+
+    @Test
+    void healthCheck_DeleteMethodNotAllowed() throws Exception {
+        mockMvc.perform(delete("/api/health"))
+                .andExpect(status().isMethodNotAllowed());
+    }
+
+    @Test
+    void healthCheck_ServiceThrowsException_Returns500() throws Exception {
+        when(healthService.getHealthStatus()).thenThrow(new RuntimeException("Unexpected error"));
+
+        mockMvc.perform(get("/api/health"))
+                .andExpect(status().isInternalServerError());
     }
 }
 ```
 
-**Coverage targets (AC-6):**
+**Coverage targets:**
 
 | Test Case | Validates |
 |-----------|-----------|
-| Returns HTTP 200 | AC-3 |
-| JSON has `status`, `timestamp`, `serviceName` | AC-1, AC-2 |
-| Timestamp is ISO-8601 formatted | Serialization correctness |
-| POST returns 405 | Endpoint only accepts GET |
+| Returns HTTP 200 with correct JSON structure | Happy path, field names |
+| Returns `DOWN` status when unhealthy | Degraded state rendering |
+| POST/PUT/DELETE return 405 | Only GET is allowed |
+| Service exception returns 500 | Unexpected error handling |
 
 ---
 
-### 6.3 DTO Unit Test (Optional / Bonus)
+### 6.3 Test Summary Matrix
 
-**File:** `src/test/java/com/thd/ordermanagement/dto/HealthResponseTest.java`
-
-```java
-package com.thd.ordermanagement.dto;
-
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-class HealthResponseTest {
-
-    @Test
-    @DisplayName("No-arg constructor creates instance with null fields")
-    void noArgConstructor_shouldCreateInstanceWithNullFields() {
-        HealthResponse response = new HealthResponse();
-
-        assertThat(response.getStatus()).isNull();
-        assertThat(response.getTimestamp()).isNull();
-        assertThat(response.getServiceName()).isNull();
-    }
-
-    @Test
-    @DisplayName("All-arg constructor populates all fields")
-    void allArgConstructor_shouldPopulateAllFields() {
-        LocalDateTime now = LocalDateTime.now();
-        HealthResponse response = new HealthResponse("UP", now, "order-management-service");
-
-        assertThat(response.getStatus()).isEqualTo("UP");
-        assertThat(response.getTimestamp()).isEqualTo(now);
-        assertThat(response.getServiceName()).isEqualTo("order-management-service");
-    }
-
-    @Test
-    @DisplayName("Setters correctly update fields")
-    void setters_shouldUpdateFields() {
-        HealthResponse response = new HealthResponse();
-        LocalDateTime now = LocalDateTime.now();
-
-        response.setStatus("DOWN");
-        response.setTimestamp(now);
-        response.setServiceName("test-service");
-
-        assertThat(response.getStatus()).isEqualTo("DOWN");
-        assertThat(response.getTimestamp()).isEqualTo(now);
-        assertThat(response.getServiceName()).isEqualTo("test-service");
-    }
-}
-```
-
----
-
-### 6.4 Test Summary Matrix
-
-| Test Class | Type | Framework | Mocking | AC Coverage |
-|-----------|------|-----------|---------|-------------|
-| `OrderServiceImplHealthTest` | Unit | JUnit 5 + Mockito | `OrderRepository` mocked (unused) | AC-1, AC-2, AC-3, AC-5 |
-| `OrderControllerHealthTest` | Controller (Slice) | `@WebMvcTest` + MockMvc | `OrderService` mocked | AC-1, AC-2, AC-3, AC-4, AC-6 |
-| `HealthResponseTest` | Unit | JUnit 5 | None | AC-2 (DTO structure) |
+| Test Class | Type | Framework | Mocking | Coverage |
+|-----------|------|-----------|---------|----------|
+| `HealthServiceTest` | Unit | JUnit 5 + Mockito | `OrderRepository` mocked | DB check UP/DOWN, service name, timestamp, consistency |
+| `HealthControllerTest` | Controller (Slice) | `@WebMvcTest` + MockMvc | `HealthService` mocked | HTTP status, JSON structure, method restrictions, error handling |
 
 ---
 
 ## 7. Implementation Notes
 
-### 7.1 Files to Create
+### 7.1 Files Created
 
 | File | Package/Path |
 |------|-------------|
+| `HealthStatus.java` | `src/main/java/com/thd/ordermanagement/model/` |
 | `HealthResponse.java` | `src/main/java/com/thd/ordermanagement/dto/` |
-| `OrderServiceImplHealthTest.java` | `src/test/java/com/thd/ordermanagement/service/` |
-| `OrderControllerHealthTest.java` | `src/test/java/com/thd/ordermanagement/controller/` |
-| `HealthResponseTest.java` *(optional)* | `src/test/java/com/thd/ordermanagement/dto/` |
+| `HealthService.java` | `src/main/java/com/thd/ordermanagement/service/` |
+| `HealthController.java` | `src/main/java/com/thd/ordermanagement/controller/` |
+| `HealthServiceTest.java` | `src/test/java/com/thd/ordermanagement/service/` |
+| `HealthControllerTest.java` | `src/test/java/com/thd/ordermanagement/controller/` |
 
-### 7.2 Files to Modify
+### 7.2 Files Modified
 
 | File | Change |
 |------|--------|
-| `OrderService.java` | Add `HealthResponse getHealthStatus();` method signature |
-| `OrderServiceImpl.java` | Add implementation of `getHealthStatus()`, add constants, add import |
-| `OrderController.java` | Add `getHealthStatus()` endpoint method, add import |
+| `OrderService.java` | No change — health check is in dedicated `HealthService` |
+| `OrderServiceImpl.java` | No change — health check is in dedicated `HealthService` |
+| `OrderController.java` | No change — health check is in dedicated `HealthController` |
 
 ### 7.3 Dependencies
 
-**No new dependencies required.** All annotations (`@Operation`, `@ApiResponse`) and testing utilities (`@WebMvcTest`, `MockMvc`, `Mockito`) are already available through existing POM dependencies:
-- `springdoc-openapi-starter-webmvc-ui` (version `3.0.2`)
+**No new dependencies required.** All annotations (`@Operation`, `@ApiResponse`, `@Tag`) and testing utilities (`@WebMvcTest`, `MockMvc`, `Mockito`) are already available through existing POM dependencies:
+- `springdoc-openapi-starter-webmvc-ui`
 - `spring-boot-starter-test`
 
 ### 7.4 Configuration
 
 No application property changes are required.
 
-### 7.5 Constraints & Considerations
+### 7.5 Key Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| **Dedicated `HealthService` + `HealthController`** | Single Responsibility Principle — health checking is orthogonal to order management. Keeps `OrderServiceImpl` focused on business logic. |
+| **`HealthStatus` enum** | Type safety — prevents typos and enables compile-time checking. `DEGRADED` status future-proofs for partial failure scenarios. |
+| **Java `record` for DTO** | Modern Java idiom — eliminates ~35 lines of boilerplate (constructors, getters, setters, equals, hashCode). Immutable by default. |
+| **`/api/health` path** | Clean, standard path for health probes. Not nested under `/api/v1/orders` because health checking is not an order operation. |
+| **`orderRepository.count()` for DB check** | Lightweight SELECT COUNT that verifies real database connectivity without side effects. |
+| **Always returns 200** | Even when `DOWN`, returns HTTP 200 with status in the body. Load balancers can inspect the JSON `status` field. This avoids conflating transport-level errors with application health state. |
+| **Graceful degradation on exception** | `HealthService` never throws — catches all exceptions and returns `DOWN` status with error logging. |
+
+### 7.6 Constraints & Considerations
 
 | Consideration | Detail |
 |---------------|--------|
-| **No Actuator conflict** | This custom endpoint at `/api/v1/orders/health` does not conflict with Spring Boot Actuator's `/actuator/health` (if Actuator is enabled later). |
-| **Service name hardcoded** | The value `"order-management-service"` is hardcoded as a constant. If needed in the future, it can be externalized to `application.yml` via `@Value("${spring.application.name}")`. For a 1-SP story, the constant approach is sufficient. |
+| **No Actuator conflict** | Custom endpoint at `/api/health` does not conflict with Spring Boot Actuator's `/actuator/health` (if Actuator is enabled later). |
+| **Service name hardcoded** | The value `"order-management-service"` is hardcoded as a constant. Can be externalized to `application.yml` via `@Value("${spring.application.name}")` if needed. |
 | **No security** | The endpoint is unauthenticated, consistent with the rest of the current API. |
-| **Time zone** | `LocalDateTime.now()` uses the JVM's default zone. This is consistent with the existing `Order.createdAt` field behavior. |
-
-### 7.6 Implementation Order (Suggested)
-
-```
-1. Create HealthResponse DTO
-2. Add method to OrderService interface
-3. Implement method in OrderServiceImpl
-4. Add endpoint to OrderController
-5. Write unit tests (OrderServiceImplHealthTest)
-6. Write controller tests (OrderControllerHealthTest)
-7. Write DTO tests (HealthResponseTest) — optional
-8. Run full test suite: mvn clean test
-9. Manual verification via Swagger UI at /swagger-ui.html
-```
+| **Time zone** | `LocalDateTime.now()` uses the JVM's default zone, consistent with `Order.createdAt` field behavior. |
 
 ---
 
 ## 8. Error Handling Strategy
 
-This endpoint is intentionally minimal and has a very narrow failure surface:
-
 | Scenario | HTTP Status | Handling |
 |----------|-------------|----------|
-| Service is running normally | `200 OK` | Returns `HealthResponse` with `"UP"` |
-| Unexpected exception in `getHealthStatus()` | `500 Internal Server Error` | Handled by the existing global `@ControllerAdvice` / Spring Boot default error handling |
-| Wrong HTTP method (e.g., POST) | `405 Method Not Allowed` | Handled automatically by Spring MVC's request mapping |
-| Path not found (typo) | `404 Not Found` | Handled automatically by Spring MVC |
-
-**No custom exception classes are needed** for this story. The method is deterministic — it constructs an object from constants and `LocalDateTime.now()` — so the probability of runtime failure is effectively zero.
+| Database accessible | `200 OK` | Returns `HealthResponse` with `status: "UP"` |
+| Database unreachable | `200 OK` | Returns `HealthResponse` with `status: "DOWN"` (graceful degradation) |
+| Unexpected exception in `HealthService` | `500 Internal Server Error` | Handled by the existing `GlobalExceptionHandler` |
+| Wrong HTTP method (POST, PUT, DELETE) | `405 Method Not Allowed` | Handled by `GlobalExceptionHandler.handleHttpRequestMethodNotSupportedException()` |
+| Path not found (typo) | `404 Not Found` | Handled by `GlobalExceptionHandler.handleNoResourceFoundException()` |
 
 ---
 
 ## Review Checklist
-- [ ] API specifications are clear and complete
-- [ ] Data model changes are well-defined
-- [ ] Architecture diagrams are accurate
-- [ ] Testing strategy is comprehensive
-- [ ] Implementation is feasible within estimated points
+- [x] API specifications are clear and complete
+- [x] Data model changes are well-defined (none required)
+- [x] Architecture diagrams are accurate
+- [x] Testing strategy is comprehensive
+- [x] Implementation follows Single Responsibility Principle
+- [x] Type-safe enum used instead of magic strings
+- [x] Modern Java record used for DTO
+- [x] Database connectivity actually verified
+- [x] Implementation is complete and merged
