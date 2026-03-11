@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: thd-order-management-service
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: h2
