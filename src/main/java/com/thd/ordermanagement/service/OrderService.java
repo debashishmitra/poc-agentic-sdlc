@@ -1,6 +1,7 @@
 package com.thd.ordermanagement.service;
 
 import com.thd.ordermanagement.dto.CreateOrderRequest;
+import com.thd.ordermanagement.dto.OrderCountSummaryResponse;
 import com.thd.ordermanagement.dto.OrderResponse;
 import com.thd.ordermanagement.model.OrderStatus;
 
@@ -24,4 +25,6 @@ public interface OrderService {
     OrderResponse updateOrderStatus(Long id, OrderStatus status);
 
     void cancelOrder(Long id);
+
+    OrderCountSummaryResponse getOrderCountSummary();
 }

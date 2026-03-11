@@ -13,7 +13,7 @@ GITHUB_API_BASE = "https://api.github.com"
 
 # Anthropic API configuration
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-MODEL = "claude-sonnet-4-20250514"
+MODEL = "claude-opus-4-20250805"
 
 # Repository local path
 REPO_LOCAL_PATH = os.getenv("REPO_LOCAL_PATH", str(Path(__file__).parent.parent.parent))

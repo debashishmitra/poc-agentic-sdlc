@@ -30,10 +30,13 @@ class DesignAgent:
         files_to_read = [
             "README.md",
             "pom.xml",
-            "src/main/java/com/example/model/User.java",
-            "src/main/java/com/example/repository/UserRepository.java",
-            "src/main/java/com/example/service/UserService.java",
-            "src/main/java/com/example/controller/UserController.java",
+            "src/main/java/com/thd/ordermanagement/model/Order.java",
+            "src/main/java/com/thd/ordermanagement/model/OrderStatus.java",
+            "src/main/java/com/thd/ordermanagement/repository/OrderRepository.java",
+            "src/main/java/com/thd/ordermanagement/service/OrderService.java",
+            "src/main/java/com/thd/ordermanagement/service/OrderServiceImpl.java",
+            "src/main/java/com/thd/ordermanagement/controller/OrderController.java",
+            "src/main/java/com/thd/ordermanagement/dto/OrderResponse.java",
         ]
 
         for file_path in files_to_read:
