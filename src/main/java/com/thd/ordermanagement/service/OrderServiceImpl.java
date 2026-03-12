@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -127,24 +126,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderResponse updateOrderStatus(Long id, OrderStatus status) {
-        logger.info("Updating order {} status to {}", id, status);
+    public OrderResponse updateOrderStatus(Long id, OrderStatus newStatus) {
+        logger.info("Updating order {} status to {}", id, newStatus);
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + id));
 
-        if (order.getOrderStatus() == OrderStatus.CANCELLED) {
-            throw new InvalidOrderStateException("Cannot update status of a cancelled order");
-        }
-
-        if (order.getOrderStatus() == OrderStatus.DELIVERED) {
-            throw new InvalidOrderStateException("Cannot update status of a delivered order");
-        }
-
-        order.setOrderStatus(status);
+        validateStatusTransition(order.getOrderStatus(), newStatus);
+        order.setOrderStatus(newStatus);
         order.setUpdatedAt(LocalDateTime.now());
-        Order updatedOrder = orderRepository.save(order);
-        logger.info("Order {} status updated to {}", id, status);
 
+        Order updatedOrder = orderRepository.save(order);
+        logger.info("Order {} status updated to {}", id, newStatus);
         return mapToOrderResponse(updatedOrder);
     }
 
@@ -154,12 +146,12 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + id));
 
-        if (order.getOrderStatus() == OrderStatus.DELIVERED) {
-            throw new InvalidOrderStateException("Cannot cancel a delivered order");
-        }
-
         if (order.getOrderStatus() == OrderStatus.CANCELLED) {
             throw new InvalidOrderStateException("Order is already cancelled");
+        }
+
+        if (order.getOrderStatus() == OrderStatus.SHIPPED || order.getOrderStatus() == OrderStatus.DELIVERED) {
+            throw new InvalidOrderStateException("Cannot cancel an order that has been shipped or delivered");
         }
 
         order.setOrderStatus(OrderStatus.CANCELLED);
@@ -170,11 +162,24 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
+    public OrderCountSummaryResponse getOrderCountSummary() {
+        long totalOrders = orderRepository.count();
+        Map<String, Long> countsByStatus = new LinkedHashMap<>();
+        for (OrderStatus status : OrderStatus.values()) {
+            long count = orderRepository.countByOrderStatus(status);
+            countsByStatus.put(status.name(), count);
+        }
+        logger.debug("Generated order count summary: total={}", totalOrders);
+        return new OrderCountSummaryResponse(totalOrders, countsByStatus);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public RecentOrdersResponse getRecentOrders(int limit) {
         logger.info("Fetching {} most recent orders", limit);
 
-        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-        List<Order> recentOrders = orderRepository.findAll(pageable).getContent();
+        Pageable pageable = PageRequest.of(0, limit);
+        List<Order> recentOrders = orderRepository.findAllByOrderByCreatedAtDesc(pageable);
 
         List<OrderResponse> orderResponses = recentOrders.stream()
                 .map(this::mapToOrderResponse)
@@ -183,6 +188,20 @@ public class OrderServiceImpl implements OrderService {
         logger.info("Retrieved {} recent orders", orderResponses.size());
 
         return new RecentOrdersResponse(orderResponses, orderResponses.size());
+    }
+
+    private void validateStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
+        if (currentStatus == OrderStatus.CANCELLED) {
+            throw new InvalidOrderStateException("Cannot change status of a cancelled order");
+        }
+
+        if (currentStatus == OrderStatus.DELIVERED) {
+            throw new InvalidOrderStateException("Cannot change status of a delivered order");
+        }
+
+        if (currentStatus == OrderStatus.PENDING && (newStatus == OrderStatus.SHIPPED || newStatus == OrderStatus.DELIVERED)) {
+            throw new InvalidOrderStateException("Cannot ship or deliver an order that is still pending");
+        }
     }
 
     private OrderResponse mapToOrderResponse(Order order) {

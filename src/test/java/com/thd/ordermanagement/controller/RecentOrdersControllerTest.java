@@ -1,6 +1,8 @@
 package com.thd.ordermanagement.controller;
 
-import com.thd.ordermanagement.dto.*;
+import com.thd.ordermanagement.dto.OrderItemResponse;
+import com.thd.ordermanagement.dto.OrderResponse;
+import com.thd.ordermanagement.dto.RecentOrdersResponse;
 import com.thd.ordermanagement.model.OrderStatus;
 import com.thd.ordermanagement.service.OrderService;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,9 +22,8 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 

@@ -9,16 +9,17 @@ Usage:
     python run.py --issue 1 --phase review --pr 2     # Run review on PR
 """
 
-import sys
 import argparse
 from pathlib import Path
+
+import sys
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
 from orchestrator import WorkflowOrchestrator
 from config.settings import validate_config
-from utils.formatting import print_error, print_banner
+from utils.formatting import print_error
 
 
 def main():

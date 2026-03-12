@@ -102,3 +102,10 @@ htmlcov/
 *.backup
 *.bak
 __pycache__/
+
+# Python virtual environment
+.venv/
+
+# Claude Code
+**/.claude/settings.local.json
+**/.claude/worktrees/

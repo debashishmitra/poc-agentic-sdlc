@@ -27,6 +27,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Page<Order> findByCustomerEmailAndCreatedAtGreaterThanEqual(
             String email, LocalDateTime startDate, Pageable pageable);
 
+    Page<Order> findByCustomerEmailAndCreatedAtLessThanEqual(
+            String email, LocalDateTime toDate, Pageable pageable);
+
+    boolean existsByCustomerEmail(String email);
+
+    long countByOrderStatus(OrderStatus status);
+
     /**
      * STORY-004: Retrieve the most recent orders sorted by creation date descending.
      * Used by the GET /api/v1/orders/recent endpoint.

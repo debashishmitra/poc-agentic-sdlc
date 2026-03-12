@@ -5,10 +5,11 @@ Follows a layered generation approach: DTO → Repository → Service → Contro
 """
 
 import re
-from typing import Dict, Any, List
-from utils.github_client import GitHubClient
+from typing import Dict, Any
+
 from utils.claude_client import ClaudeClient
 from utils.formatting import print_agent_header, print_step, print_success, print_error
+from utils.github_client import GitHubClient
 
 # Base package path for the THD Order Management Service
 BASE_PACKAGE = "com.thd.ordermanagement"

@@ -3,9 +3,10 @@ Claude API client for interacting with Anthropic's Claude models.
 Handles API calls with proper error handling and fallback strategies.
 """
 
-import requests
 import json
-from typing import Dict, Any, Optional
+from typing import Dict
+
+import requests
 from config.settings import ANTHROPIC_API_KEY, MODEL, MAX_TOKENS, API_TIMEOUT
 
 

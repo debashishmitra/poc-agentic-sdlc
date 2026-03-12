@@ -1,10 +1,6 @@
 package com.thd.ordermanagement.controller;
 
-import com.thd.ordermanagement.dto.CreateOrderRequest;
-import com.thd.ordermanagement.dto.OrderCountSummaryResponse;
-import com.thd.ordermanagement.dto.OrderResponse;
-import com.thd.ordermanagement.dto.RecentOrdersResponse;
-import com.thd.ordermanagement.dto.UpdateOrderStatusRequest;
+import com.thd.ordermanagement.dto.*;
 import com.thd.ordermanagement.model.OrderStatus;
 import com.thd.ordermanagement.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -74,10 +70,10 @@ public class OrderController {
         return ResponseEntity.ok(responses);
     }
 
-    @GetMapping("/customer")
+    @GetMapping("/customer/{email}")
     @Operation(summary = "Get orders by customer email", description = "Retrieves all orders for a specific customer email")
     @ApiResponse(responseCode = "200", description = "Orders retrieved successfully")
-    public ResponseEntity<List<OrderResponse>> getOrdersByCustomerEmail(@RequestParam String email) {
+    public ResponseEntity<List<OrderResponse>> getOrdersByCustomerEmail(@PathVariable String email) {
         List<OrderResponse> responses = orderService.getOrdersByCustomerEmail(email);
         return ResponseEntity.ok(responses);
     }
@@ -92,25 +88,34 @@ public class OrderController {
         return ResponseEntity.ok(responses);
     }
 
-    @PutMapping("/{id}/status")
+    @PatchMapping("/{id}/status")
     @Operation(summary = "Update order status", description = "Updates the status of an existing order")
     @ApiResponse(responseCode = "200", description = "Order status updated successfully")
     @ApiResponse(responseCode = "404", description = "Order not found")
     @ApiResponse(responseCode = "400", description = "Invalid status transition")
-    public ResponseEntity<OrderResponse> updateOrderStatus(@PathVariable Long id,
-                                                           @Valid @RequestBody UpdateOrderStatusRequest request) {
+    public ResponseEntity<OrderResponse> updateOrderStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateOrderStatusRequest request) {
         OrderResponse response = orderService.updateOrderStatus(id, request.getStatus());
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}/cancel")
+    @GetMapping("/summary/counts")
+    @Operation(summary = "Get order count summary", description = "Returns the count of orders grouped by each OrderStatus along with a total order count")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved order count summary")
+    public ResponseEntity<OrderCountSummaryResponse> getOrderCountSummary() {
+        OrderCountSummaryResponse summary = orderService.getOrderCountSummary();
+        return ResponseEntity.ok(summary);
+    }
+
+    @DeleteMapping("/{id}/cancel")
     @Operation(summary = "Cancel an order", description = "Cancels an existing order")
-    @ApiResponse(responseCode = "200", description = "Order cancelled successfully")
+    @ApiResponse(responseCode = "204", description = "Order cancelled successfully")
     @ApiResponse(responseCode = "404", description = "Order not found")
     @ApiResponse(responseCode = "400", description = "Order cannot be cancelled")
     public ResponseEntity<Void> cancelOrder(@PathVariable Long id) {
         orderService.cancelOrder(id);
-        return ResponseEntity.ok().build();
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("/recent")

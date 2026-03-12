@@ -27,5 +27,7 @@ public interface OrderService {
 
     void cancelOrder(Long id);
 
+    OrderCountSummaryResponse getOrderCountSummary();
+
     RecentOrdersResponse getRecentOrders(int limit);
 }

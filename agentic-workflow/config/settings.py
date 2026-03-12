@@ -5,6 +5,7 @@ Loads settings from environment variables and provides defaults.
 
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Load .env file from the agentic-workflow directory
