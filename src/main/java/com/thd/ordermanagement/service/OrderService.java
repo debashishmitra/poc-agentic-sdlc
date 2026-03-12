@@ -3,6 +3,7 @@ package com.thd.ordermanagement.service;
 import com.thd.ordermanagement.dto.CreateOrderRequest;
 import com.thd.ordermanagement.dto.OrderCountSummaryResponse;
 import com.thd.ordermanagement.dto.OrderResponse;
+import com.thd.ordermanagement.dto.RecentOrdersResponse;
 import com.thd.ordermanagement.model.OrderStatus;
 
 import java.time.LocalDateTime;
@@ -26,5 +27,5 @@ public interface OrderService {
 
     void cancelOrder(Long id);
 
-    OrderCountSummaryResponse getOrderCountSummary();
+    RecentOrdersResponse getRecentOrders(int limit);
 }
