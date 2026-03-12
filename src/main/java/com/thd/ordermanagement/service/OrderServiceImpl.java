@@ -4,6 +4,7 @@ import com.thd.ordermanagement.dto.CreateOrderRequest;
 import com.thd.ordermanagement.dto.OrderCountSummaryResponse;
 import com.thd.ordermanagement.dto.OrderItemResponse;
 import com.thd.ordermanagement.dto.OrderResponse;
+import com.thd.ordermanagement.dto.RecentOrdersResponse;
 import com.thd.ordermanagement.exception.InvalidOrderStateException;
 import com.thd.ordermanagement.exception.OrderNotFoundException;
 import com.thd.ordermanagement.model.Order;
@@ -13,6 +14,9 @@ import com.thd.ordermanagement.repository.OrderRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,8 +48,10 @@ public class OrderServiceImpl implements OrderService {
         order.setCustomerEmail(request.getCustomerEmail());
         order.setShippingAddress(request.getShippingAddress());
         order.setOrderStatus(OrderStatus.PENDING);
+        order.setCreatedAt(LocalDateTime.now());
+        order.setUpdatedAt(LocalDateTime.now());
 
-        List<OrderItem> items = request.getItems().stream()
+        List<OrderItem> orderItems = request.getItems().stream()
                 .map(itemRequest -> {
                     OrderItem item = new OrderItem();
                     item.setProductSku(itemRequest.getProductSku());
@@ -57,30 +63,34 @@ public class OrderServiceImpl implements OrderService {
                 })
                 .collect(Collectors.toList());
 
-        order.setOrderItems(items);
+        order.setOrderItems(orderItems);
 
-        BigDecimal totalAmount = calculateTotalAmount(items);
+        BigDecimal totalAmount = orderItems.stream()
+                .map(item -> item.getUnitPrice().multiply(new BigDecimal(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         order.setTotalAmount(totalAmount);
 
+        logger.info("Creating new order for customer: {}", request.getCustomerEmail());
         Order savedOrder = orderRepository.save(order);
-        logger.info("Created order with id: {}", savedOrder.getId());
+        logger.info("Order created successfully with ID: {}", savedOrder.getId());
+
         return mapToOrderResponse(savedOrder);
     }
 
     @Override
     @Transactional(readOnly = true)
     public OrderResponse getOrderById(Long id) {
+        logger.info("Fetching order with ID: {}", id);
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + id));
-        logger.debug("Retrieved order with id: {}", id);
         return mapToOrderResponse(order);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponse> getAllOrders() {
+        logger.info("Fetching all orders");
         List<Order> orders = orderRepository.findAll();
-        logger.debug("Retrieved {} orders", orders.size());
         return orders.stream()
                 .map(this::mapToOrderResponse)
                 .collect(Collectors.toList());
@@ -89,8 +99,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrdersByStatus(OrderStatus status) {
+        logger.info("Fetching orders with status: {}", status);
         List<Order> orders = orderRepository.findByOrderStatus(status);
-        logger.debug("Retrieved {} orders with status: {}", orders.size(), status);
         return orders.stream()
                 .map(this::mapToOrderResponse)
                 .collect(Collectors.toList());
@@ -99,8 +109,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrdersByCustomerEmail(String email) {
+        logger.info("Fetching orders for customer email: {}", email);
         List<Order> orders = orderRepository.findByCustomerEmail(email);
-        logger.debug("Retrieved {} orders for customer email: {}", orders.size(), maskEmail(email));
         return orders.stream()
                 .map(this::mapToOrderResponse)
                 .collect(Collectors.toList());
@@ -109,81 +119,70 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrdersByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        logger.info("Fetching orders between {} and {}", startDate, endDate);
         List<Order> orders = orderRepository.findByCreatedAtBetween(startDate, endDate);
-        logger.debug("Retrieved {} orders between {} and {}", orders.size(), startDate, endDate);
         return orders.stream()
                 .map(this::mapToOrderResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public OrderResponse updateOrderStatus(Long id, OrderStatus newStatus) {
+    public OrderResponse updateOrderStatus(Long id, OrderStatus status) {
+        logger.info("Updating order {} status to {}", id, status);
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + id));
 
-        validateStatusTransition(order.getOrderStatus(), newStatus);
-        order.setOrderStatus(newStatus);
+        if (order.getOrderStatus() == OrderStatus.CANCELLED) {
+            throw new InvalidOrderStateException("Cannot update status of a cancelled order");
+        }
 
+        if (order.getOrderStatus() == OrderStatus.DELIVERED) {
+            throw new InvalidOrderStateException("Cannot update status of a delivered order");
+        }
+
+        order.setOrderStatus(status);
+        order.setUpdatedAt(LocalDateTime.now());
         Order updatedOrder = orderRepository.save(order);
-        logger.info("Updated order {} status to: {}", id, newStatus);
+        logger.info("Order {} status updated to {}", id, status);
+
         return mapToOrderResponse(updatedOrder);
     }
 
     @Override
     public void cancelOrder(Long id) {
+        logger.info("Cancelling order with ID: {}", id);
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + id));
+
+        if (order.getOrderStatus() == OrderStatus.DELIVERED) {
+            throw new InvalidOrderStateException("Cannot cancel a delivered order");
+        }
 
         if (order.getOrderStatus() == OrderStatus.CANCELLED) {
             throw new InvalidOrderStateException("Order is already cancelled");
         }
 
-        if (order.getOrderStatus() == OrderStatus.SHIPPED || order.getOrderStatus() == OrderStatus.DELIVERED) {
-            throw new InvalidOrderStateException("Cannot cancel an order that has been shipped or delivered");
-        }
-
         order.setOrderStatus(OrderStatus.CANCELLED);
+        order.setUpdatedAt(LocalDateTime.now());
         orderRepository.save(order);
-        logger.info("Cancelled order with id: {}", id);
+        logger.info("Order {} cancelled successfully", id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public OrderCountSummaryResponse getOrderCountSummary() {
-        long totalOrders = orderRepository.count();
-        Map<String, Long> countsByStatus = new LinkedHashMap<>();
-        for (OrderStatus status : OrderStatus.values()) {
-            long count = orderRepository.countByOrderStatus(status);
-            countsByStatus.put(status.name(), count);
-        }
-        logger.debug("Generated order count summary: total={}", totalOrders);
-        return new OrderCountSummaryResponse(totalOrders, countsByStatus);
-    }
+    public RecentOrdersResponse getRecentOrders(int limit) {
+        logger.info("Fetching {} most recent orders", limit);
 
-    private void validateStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
-        if (currentStatus == OrderStatus.CANCELLED) {
-            throw new InvalidOrderStateException("Cannot change status of a cancelled order");
-        }
+        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<Order> recentOrders = orderRepository.findAll(pageable).getContent();
 
-        if (currentStatus == OrderStatus.DELIVERED) {
-            throw new InvalidOrderStateException("Cannot change status of a delivered order");
-        }
+        List<OrderResponse> orderResponses = recentOrders.stream()
+                .map(this::mapToOrderResponse)
+                .collect(Collectors.toList());
 
-        if (currentStatus == OrderStatus.PENDING && (newStatus == OrderStatus.SHIPPED || newStatus == OrderStatus.DELIVERED)) {
-            throw new InvalidOrderStateException("Cannot ship or deliver an order that is still pending");
-        }
-    }
+        logger.info("Retrieved {} recent orders", orderResponses.size());
 
-    private BigDecimal calculateTotalAmount(List<OrderItem> items) {
-        return items.stream()
-                .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private String maskEmail(String email) {
-        if (email == null || !email.contains("@")) return "***";
-        int atIndex = email.indexOf('@');
-        return email.substring(0, Math.min(2, atIndex)) + "***" + email.substring(atIndex);
+        return new RecentOrdersResponse(orderResponses, orderResponses.size());
     }
 
     private OrderResponse mapToOrderResponse(Order order) {
