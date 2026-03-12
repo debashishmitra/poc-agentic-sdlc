@@ -3,6 +3,7 @@ package com.thd.ordermanagement.controller;
 import com.thd.ordermanagement.dto.CreateOrderRequest;
 import com.thd.ordermanagement.dto.OrderCountSummaryResponse;
 import com.thd.ordermanagement.dto.OrderResponse;
+import com.thd.ordermanagement.dto.RecentOrdersResponse;
 import com.thd.ordermanagement.dto.UpdateOrderStatusRequest;
 import com.thd.ordermanagement.model.OrderStatus;
 import com.thd.ordermanagement.service.OrderService;
@@ -10,19 +11,27 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/orders")
 @Tag(name = "Orders", description = "Order Management API")
 public class OrderController {
+
+    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 
     private final OrderService orderService;
 
@@ -44,8 +53,8 @@ public class OrderController {
     @Operation(summary = "Get all orders", description = "Retrieves a list of all orders")
     @ApiResponse(responseCode = "200", description = "Orders retrieved successfully")
     public ResponseEntity<List<OrderResponse>> getAllOrders() {
-        List<OrderResponse> orders = orderService.getAllOrders();
-        return new ResponseEntity<>(orders, HttpStatus.OK);
+        List<OrderResponse> responses = orderService.getAllOrders();
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/{id}")
@@ -53,24 +62,24 @@ public class OrderController {
     @ApiResponse(responseCode = "200", description = "Order retrieved successfully")
     @ApiResponse(responseCode = "404", description = "Order not found")
     public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id) {
-        OrderResponse order = orderService.getOrderById(id);
-        return new ResponseEntity<>(order, HttpStatus.OK);
+        OrderResponse response = orderService.getOrderById(id);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/status/{status}")
     @Operation(summary = "Get orders by status", description = "Retrieves all orders with the specified status")
     @ApiResponse(responseCode = "200", description = "Orders retrieved successfully")
     public ResponseEntity<List<OrderResponse>> getOrdersByStatus(@PathVariable OrderStatus status) {
-        List<OrderResponse> orders = orderService.getOrdersByStatus(status);
-        return new ResponseEntity<>(orders, HttpStatus.OK);
+        List<OrderResponse> responses = orderService.getOrdersByStatus(status);
+        return ResponseEntity.ok(responses);
     }
 
-    @GetMapping("/customer/{email}")
+    @GetMapping("/customer")
     @Operation(summary = "Get orders by customer email", description = "Retrieves all orders for a specific customer email")
     @ApiResponse(responseCode = "200", description = "Orders retrieved successfully")
-    public ResponseEntity<List<OrderResponse>> getOrdersByCustomerEmail(@PathVariable String email) {
-        List<OrderResponse> orders = orderService.getOrdersByCustomerEmail(email);
-        return new ResponseEntity<>(orders, HttpStatus.OK);
+    public ResponseEntity<List<OrderResponse>> getOrdersByCustomerEmail(@RequestParam String email) {
+        List<OrderResponse> responses = orderService.getOrdersByCustomerEmail(email);
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/date-range")
@@ -79,37 +88,40 @@ public class OrderController {
     public ResponseEntity<List<OrderResponse>> getOrdersByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
-        List<OrderResponse> orders = orderService.getOrdersByDateRange(startDate, endDate);
-        return new ResponseEntity<>(orders, HttpStatus.OK);
+        List<OrderResponse> responses = orderService.getOrdersByDateRange(startDate, endDate);
+        return ResponseEntity.ok(responses);
     }
 
-    @PatchMapping("/{id}/status")
+    @PutMapping("/{id}/status")
     @Operation(summary = "Update order status", description = "Updates the status of an existing order")
     @ApiResponse(responseCode = "200", description = "Order status updated successfully")
     @ApiResponse(responseCode = "404", description = "Order not found")
     @ApiResponse(responseCode = "400", description = "Invalid status transition")
-    public ResponseEntity<OrderResponse> updateOrderStatus(
-            @PathVariable Long id,
-            @Valid @RequestBody UpdateOrderStatusRequest request) {
+    public ResponseEntity<OrderResponse> updateOrderStatus(@PathVariable Long id,
+                                                           @Valid @RequestBody UpdateOrderStatusRequest request) {
         OrderResponse response = orderService.updateOrderStatus(id, request.getStatus());
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/summary/counts")
-    @Operation(summary = "Get order count summary", description = "Returns the count of orders grouped by each OrderStatus along with a total order count")
-    @ApiResponse(responseCode = "200", description = "Successfully retrieved order count summary")
-    public ResponseEntity<OrderCountSummaryResponse> getOrderCountSummary() {
-        OrderCountSummaryResponse summary = orderService.getOrderCountSummary();
-        return ResponseEntity.ok(summary);
-    }
-
-    @DeleteMapping("/{id}/cancel")
+    @PutMapping("/{id}/cancel")
     @Operation(summary = "Cancel an order", description = "Cancels an existing order")
-    @ApiResponse(responseCode = "204", description = "Order cancelled successfully")
+    @ApiResponse(responseCode = "200", description = "Order cancelled successfully")
     @ApiResponse(responseCode = "404", description = "Order not found")
     @ApiResponse(responseCode = "400", description = "Order cannot be cancelled")
     public ResponseEntity<Void> cancelOrder(@PathVariable Long id) {
         orderService.cancelOrder(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/recent")
+    @Operation(summary = "Get recent orders", description = "Retrieves the N most recently created orders, sorted by creation date descending (newest first)")
+    @ApiResponse(responseCode = "200", description = "Recent orders retrieved successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid limit parameter")
+    public ResponseEntity<RecentOrdersResponse> getRecentOrders(
+            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int limit) {
+        logger.info("Received request to get recent orders with limit: {}", limit);
+        RecentOrdersResponse response = orderService.getRecentOrders(limit);
+        logger.info("Returning {} recent orders", response.getCount());
+        return ResponseEntity.ok(response);
     }
 }
