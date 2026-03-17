@@ -2,7 +2,7 @@
 
 A POC microservice for managing orders, demonstrating AI Agentic SDLC Workflows.
 
-![Java](https://img.shields.io/badge/Java-25-ED8B00?style=flat&logo=openjdk&logoColor=white)
+![Java](https://img.shields.io/badge/Java-26-ED8B00?style=flat&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.3-6DB33F?style=flat&logo=springboot&logoColor=white)
 ![Maven](https://img.shields.io/badge/Maven-3.8.7+-C71A36?style=flat&logo=apachemaven&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat&logo=postgresql&logoColor=white)
@@ -43,7 +43,7 @@ The Order Management Service is a Spring Boot-based REST API that provides compr
 
 ## Prerequisites
 
-- Java 25 or higher
+- Java 26 or higher
 - Maven 3.8.7 or higher
 - Docker and Docker Compose (for PostgreSQL deployment)
 - PostgreSQL 15 (if running without Docker)
