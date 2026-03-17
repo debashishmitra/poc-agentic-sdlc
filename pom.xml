@@ -18,7 +18,7 @@
     <description>Order Management Microservice for The Home Depot - POC for AI Agentic SDLC Workflows</description>
 
     <properties>
-        <java.version>25</java.version>
+        <java.version>26</java.version>
         <springdoc.version>3.0.2</springdoc.version>
     </properties>
 
