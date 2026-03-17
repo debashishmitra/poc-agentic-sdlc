@@ -1,6 +1,6 @@
 # Order Management Service
 
-A POC microservice for managing orders in The Home Depot ecosystem, demonstrating AI Agentic SDLC Workflows.
+A POC microservice for managing orders, demonstrating AI Agentic SDLC Workflows.
 
 ![Java](https://img.shields.io/badge/Java-25-ED8B00?style=flat&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.3-6DB33F?style=flat&logo=springboot&logoColor=white)
