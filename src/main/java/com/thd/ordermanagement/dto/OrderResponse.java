@@ -1,10 +1,10 @@
 package com.thd.ordermanagement.dto;
 
-import com.thd.ordermanagement.model.OrderStatus;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.thd.ordermanagement.model.OrderStatus;
 
 public class OrderResponse {
 

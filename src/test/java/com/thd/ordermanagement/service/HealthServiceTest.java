@@ -1,18 +1,21 @@
 package com.thd.ordermanagement.service;
 
-import com.thd.ordermanagement.dto.HealthResponse;
-import com.thd.ordermanagement.model.HealthStatus;
-import com.thd.ordermanagement.repository.OrderRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import com.thd.ordermanagement.dto.HealthResponse;
+import com.thd.ordermanagement.model.HealthStatus;
+import com.thd.ordermanagement.repository.OrderRepository;
 
 @ExtendWith(MockitoExtension.class)
 class HealthServiceTest {
