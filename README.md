@@ -384,7 +384,3 @@ The application is hosted on Render (free tier) with UptimeRobot providing keep-
 ## Contributing
 
 This is a POC project demonstrating AI Agentic SDLC Workflows. Please follow the existing code structure and conventions when contributing.
-
-## License
-
-Proprietary - The Home Depot
