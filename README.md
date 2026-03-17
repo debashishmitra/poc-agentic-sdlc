@@ -379,7 +379,7 @@ The application is hosted on Render (free tier) with UptimeRobot providing keep-
 | **Render** (Hosting) | [App Dashboard](https://dashboard.render.com/web/srv-d6ot40aa214c73aojvjg) |
 | **UptimeRobot** (Monitoring) | [Monitor Dashboard](https://dashboard.uptimerobot.com/monitors/802530643) |
 
-**Live URL**: https://poc-agentic-sdlc.onrender.com/api/vi/orders
+**Live URL**: https://poc-agentic-sdlc.onrender.com/api/v1/orders
 
 ## Contributing
 
