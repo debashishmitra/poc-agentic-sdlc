@@ -39,7 +39,7 @@ A POC microservice for managing orders, demonstrating AI Agentic SDLC Workflows.
 
 ## Overview
 
-The THD Order Management Service is a Spring Boot-based REST API that provides comprehensive order management capabilities. It supports creating, retrieving, and managing orders with various statuses and operations.
+The Order Management Service is a Spring Boot-based REST API that provides comprehensive order management capabilities. It supports creating, retrieving, and managing orders with various statuses and operations.
 
 ## Prerequisites
 
