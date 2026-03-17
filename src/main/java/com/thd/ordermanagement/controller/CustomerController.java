@@ -31,7 +31,6 @@ public class CustomerController {
 
     private final CustomerOrderService customerOrderService;
 
-    @Autowired
     public CustomerController(CustomerOrderService customerOrderService) {
         this.customerOrderService = customerOrderService;
     }
