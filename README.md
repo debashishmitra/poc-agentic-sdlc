@@ -1,4 +1,4 @@
-# THD Order Management Service
+# Order Management Service
 
 A POC microservice for managing orders in The Home Depot ecosystem, demonstrating AI Agentic SDLC Workflows.
 
