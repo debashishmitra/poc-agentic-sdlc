@@ -21,7 +21,8 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 MODEL = "claude-opus-4-6"
 
 # Repository local path
-REPO_LOCAL_PATH = os.getenv("REPO_LOCAL_PATH", str(Path(__file__).parent.parent.parent))
+# REPO_LOCAL_PATH = os.getenv("REPO_LOCAL_PATH", str(Path(__file__).parent.parent.parent))
+REPO_LOCAL_PATH = str(Path(__file__).parent.parent.parent)
 
 # Validate required environment variables
 def validate_config():
